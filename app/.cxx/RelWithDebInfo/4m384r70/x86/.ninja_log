@@ -1,0 +1,27 @@
+# ninja log v5
+3	592	1754672787264844877	CMakeFiles/coughdetect.dir/jni_interface.cpp.o	4b1594598705644e
+2	795	1754672787488590719	CMakeFiles/coughdetect.dir/tensorflow_wrapper.cpp.o	d18cfe581d3734a2
+1	796	1754672787491425063	CMakeFiles/coughdetect.dir/audio_recorder.cpp.o	e56e5251e8469f5a
+0	840	1754672787525210232	CMakeFiles/coughdetect.dir/cough_detect_engine.cpp.o	170cba4aa6ea10bf
+840	914	1754672787596571917	/Users/bytedance/Developer/Github/cough_detect/app/build/intermediates/cxx/RelWithDebInfo/4m384r70/obj/x86/libcoughdetect.so	c68afc6551c5c411
+0	9	0	clean	7bd4f9e6fa6ed76
+11	1953	1754741844335503699	CMakeFiles/coughdetect.dir/jni_interface.cpp.o	4b1594598705644e
+4	2161	1754741844552359800	CMakeFiles/coughdetect.dir/audio_recorder.cpp.o	e56e5251e8469f5a
+2	2218	1754741844603167126	CMakeFiles/coughdetect.dir/cough_detect_engine.cpp.o	170cba4aa6ea10bf
+6	2262	1754741844633061749	CMakeFiles/coughdetect.dir/tensorflow_wrapper.cpp.o	d18cfe581d3734a2
+2262	2546	1754741844922291095	/Users/bytedance/Developer/Github/cough_detect/app/build/intermediates/cxx/RelWithDebInfo/4m384r70/obj/x86/libcoughdetect.so	c68afc6551c5c411
+3	838	1754757959657808267	CMakeFiles/coughdetect.dir/jni_interface.cpp.o	4b1594598705644e
+2	940	1754757959756271857	CMakeFiles/coughdetect.dir/audio_recorder.cpp.o	e56e5251e8469f5a
+2	1027	1754757959846032977	CMakeFiles/coughdetect.dir/tensorflow_wrapper.cpp.o	d18cfe581d3734a2
+1027	1150	1754757959967603746	/Users/bytedance/Developer/Github/cough_detect/app/build/intermediates/cxx/RelWithDebInfo/4m384r70/obj/x86/libcoughdetect.so	c68afc6551c5c411
+5	1159	1754791015536273130	CMakeFiles/coughdetect.dir/jni_interface.cpp.o	4b1594598705644e
+2	1263	1754791015650429675	CMakeFiles/coughdetect.dir/audio_recorder.cpp.o	e56e5251e8469f5a
+1263	1471	1754791015853512856	/Users/bytedance/Developer/Github/cough_detect/app/build/intermediates/cxx/RelWithDebInfo/4m384r70/obj/x86/libcoughdetect.so	c68afc6551c5c411
+1	12	0	clean	7bd4f9e6fa6ed76
+0	8	0	clean	7bd4f9e6fa6ed76
+6	1296	1754923183681143877	CMakeFiles/coughdetect.dir/jni_interface.cpp.o	4b1594598705644e
+3	1633	1754923184045411870	CMakeFiles/coughdetect.dir/audio_recorder.cpp.o	e56e5251e8469f5a
+4	1721	1754923184124712574	CMakeFiles/coughdetect.dir/tensorflow_wrapper.cpp.o	d18cfe581d3734a2
+6	1757	1754923184166183793	CMakeFiles/coughdetect.dir/cough_detect_engine.cpp.o	170cba4aa6ea10bf
+1757	1912	1754923184314263583	/Users/bytedance/Developer/Github/cough_detect/app/build/intermediates/cxx/RelWithDebInfo/4m384r70/obj/x86/libcoughdetect.so	c68afc6551c5c411
+0	22	0	clean	7bd4f9e6fa6ed76

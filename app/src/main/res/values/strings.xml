@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">咳嗽检测</string>
+    <string name="start_detection">开始检测</string>
+    <string name="pause_detection">暂停检测</string>
+    <string name="clear_records">清空记录</string>
+    <string name="cough_detected">检测到咳嗽</string>
+    <string name="no_cough_records">暂无咳嗽记录</string>
+    <string name="detection_status_idle">未开始检测</string>
+    <string name="detection_status_recording">正在检测中...</string>
+    <string name="detection_status_paused">检测已暂停</string>
+    <string name="permission_denied">需要录音权限才能进行咳嗽检测</string>
+    <string name="grant_permission">授予权限</string>
+    <string name="permission_required">需要权限</string>
+    <string name="permission_rationale">此应用需要录音权限才能正常工作。请授予所需权限或退出应用。</string>
+    <string name="exit_app">退出应用</string>
+    <string name="cough_count">咳嗽次数: %d</string>
+    <string name="record_time">记录时间</string>
+    <string name="play_audio">播放音频</string>
+    <string name="delete_record">删除记录</string>
+    <string name="confirm_clear_all">确定要清空所有咳嗽记录吗？</string>
+    <string name="confirm">确定</string>
+    <string name="cancel">取消</string>
+    <string name="records_cleared">记录已清空</string>
+    <string name="cough_detection_app">咳嗽检测应用</string>
+</resources>

@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew:*)",
+      "Bash(ls -la)",
+      "Bash(find:*)"
+    ],
+    "deny": []
+  }
+}

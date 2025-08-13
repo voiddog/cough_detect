@@ -1,0 +1,2 @@
+-- Configuring incomplete, errors occurred!
+See also "/Users/bytedance/Developer/Github/cough_detect/app/.cxx/Debug/v6hk403e/armeabi-v7a/CMakeFiles/CMakeOutput.log".

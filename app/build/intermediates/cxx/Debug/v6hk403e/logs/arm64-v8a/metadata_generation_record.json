@@ -1,0 +1,119 @@
+[
+  {
+    "level_": 0,
+    "message_": "Start JSON generation. Platform version: 24 min SDK version: arm64-v8a",
+    "file_": "/Users/bytedance/Developer/Github/cough_detect/app/src/main/cpp/CMakeLists.txt",
+    "tag_": "debug|arm64-v8a",
+    "diagnosticCode_": 0,
+    "memoizedIsInitialized": 1,
+    "unknownFields": {
+      "fields": {}
+    },
+    "memoizedSize": -1,
+    "memoizedHashCode": 0
+  },
+  {
+    "level_": 0,
+    "message_": "rebuilding JSON /Users/bytedance/Developer/Github/cough_detect/app/.cxx/Debug/v6hk403e/arm64-v8a/android_gradle_build.json due to:",
+    "file_": "/Users/bytedance/Developer/Github/cough_detect/app/src/main/cpp/CMakeLists.txt",
+    "tag_": "debug|arm64-v8a",
+    "diagnosticCode_": 0,
+    "memoizedIsInitialized": 1,
+    "unknownFields": {
+      "fields": {}
+    },
+    "memoizedSize": -1,
+    "memoizedHashCode": 0
+  },
+  {
+    "level_": 0,
+    "message_": "- a file changed",
+    "file_": "/Users/bytedance/Developer/Github/cough_detect/app/src/main/cpp/CMakeLists.txt",
+    "tag_": "debug|arm64-v8a",
+    "diagnosticCode_": 0,
+    "memoizedIsInitialized": 1,
+    "unknownFields": {
+      "fields": {}
+    },
+    "memoizedSize": -1,
+    "memoizedHashCode": 0
+  },
+  {
+    "level_": 0,
+    "message_": "  - /Users/bytedance/Developer/Github/cough_detect/app/src/main/cpp/CMakeLists.txt (LAST_MODIFIED_CHANGED)",
+    "file_": "/Users/bytedance/Developer/Github/cough_detect/app/src/main/cpp/CMakeLists.txt",
+    "tag_": "debug|arm64-v8a",
+    "diagnosticCode_": 0,
+    "memoizedIsInitialized": 1,
+    "unknownFields": {
+      "fields": {}
+    },
+    "memoizedSize": -1,
+    "memoizedHashCode": 0
+  },
+  {
+    "level_": 0,
+    "message_": "/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home/bin/java \\\n  --class-path \\\n  /Users/bytedance/.gradle/caches/modules-2/files-2.1/com.google.prefab/cli/2.0.0/f2702b5ca13df54e3ca92f29d6b403fb6285d8df/cli-2.0.0-all.jar \\\n  com.google.prefab.cli.AppKt \\\n  --build-system \\\n  cmake \\\n  --platform \\\n  android \\\n  --abi \\\n  arm64-v8a \\\n  --os-version \\\n  24 \\\n  --stl \\\n  c++_shared \\\n  --ndk-version \\\n  25 \\\n  --output \\\n  /var/folders/58/0v2k35p56n5bnzglsj0p7nnm0000gn/T/agp-prefab-staging1557583682031522760/staged-cli-output \\\n  /Users/bytedance/.gradle/caches/transforms-3/a220dbb80781b4a1f47c15588fd9baf1/transformed/oboe-1.8.0/prefab\n",
+    "file_": "/Users/bytedance/Developer/Github/cough_detect/app/src/main/cpp/CMakeLists.txt",
+    "tag_": "debug|arm64-v8a",
+    "diagnosticCode_": 0,
+    "memoizedIsInitialized": 1,
+    "unknownFields": {
+      "fields": {}
+    },
+    "memoizedSize": -1,
+    "memoizedHashCode": 0
+  },
+  {
+    "level_": 0,
+    "message_": "keeping json folder \u0027/Users/bytedance/Developer/Github/cough_detect/app/.cxx/Debug/v6hk403e/arm64-v8a\u0027 but regenerating project",
+    "file_": "/Users/bytedance/Developer/Github/cough_detect/app/src/main/cpp/CMakeLists.txt",
+    "tag_": "debug|arm64-v8a",
+    "diagnosticCode_": 0,
+    "memoizedIsInitialized": 1,
+    "unknownFields": {
+      "fields": {}
+    },
+    "memoizedSize": -1,
+    "memoizedHashCode": 0
+  },
+  {
+    "level_": 0,
+    "message_": "executing cmake /Users/bytedance/Library/Android/sdk/cmake/3.22.1/bin/cmake \\\n  -H/Users/bytedance/Developer/Github/cough_detect/app/src/main/cpp \\\n  -DCMAKE_SYSTEM_NAME\u003dAndroid \\\n  -DCMAKE_EXPORT_COMPILE_COMMANDS\u003dON \\\n  -DCMAKE_SYSTEM_VERSION\u003d24 \\\n  -DANDROID_PLATFORM\u003dandroid-24 \\\n  -DANDROID_ABI\u003darm64-v8a \\\n  -DCMAKE_ANDROID_ARCH_ABI\u003darm64-v8a \\\n  -DANDROID_NDK\u003d/Users/bytedance/Library/Android/sdk/ndk/25.1.8937393 \\\n  -DCMAKE_ANDROID_NDK\u003d/Users/bytedance/Library/Android/sdk/ndk/25.1.8937393 \\\n  -DCMAKE_TOOLCHAIN_FILE\u003d/Users/bytedance/Library/Android/sdk/ndk/25.1.8937393/build/cmake/android.toolchain.cmake \\\n  -DCMAKE_MAKE_PROGRAM\u003d/Users/bytedance/Library/Android/sdk/cmake/3.22.1/bin/ninja \\\n  -DCMAKE_CXX_FLAGS\u003d-std\u003dc++17 \\\n  -DCMAKE_LIBRARY_OUTPUT_DIRECTORY\u003d/Users/bytedance/Developer/Github/cough_detect/app/build/intermediates/cxx/Debug/v6hk403e/obj/arm64-v8a \\\n  -DCMAKE_RUNTIME_OUTPUT_DIRECTORY\u003d/Users/bytedance/Developer/Github/cough_detect/app/build/intermediates/cxx/Debug/v6hk403e/obj/arm64-v8a \\\n  -DCMAKE_BUILD_TYPE\u003dDebug \\\n  -DCMAKE_FIND_ROOT_PATH\u003d/Users/bytedance/Developer/Github/cough_detect/app/.cxx/Debug/v6hk403e/prefab/arm64-v8a/prefab \\\n  -B/Users/bytedance/Developer/Github/cough_detect/app/.cxx/Debug/v6hk403e/arm64-v8a \\\n  -GNinja \\\n  -DANDROID_STL\u003dc++_shared\n",
+    "file_": "/Users/bytedance/Developer/Github/cough_detect/app/src/main/cpp/CMakeLists.txt",
+    "tag_": "debug|arm64-v8a",
+    "diagnosticCode_": 0,
+    "memoizedIsInitialized": 1,
+    "unknownFields": {
+      "fields": {}
+    },
+    "memoizedSize": -1,
+    "memoizedHashCode": 0
+  },
+  {
+    "level_": 0,
+    "message_": "/Users/bytedance/Library/Android/sdk/cmake/3.22.1/bin/cmake \\\n  -H/Users/bytedance/Developer/Github/cough_detect/app/src/main/cpp \\\n  -DCMAKE_SYSTEM_NAME\u003dAndroid \\\n  -DCMAKE_EXPORT_COMPILE_COMMANDS\u003dON \\\n  -DCMAKE_SYSTEM_VERSION\u003d24 \\\n  -DANDROID_PLATFORM\u003dandroid-24 \\\n  -DANDROID_ABI\u003darm64-v8a \\\n  -DCMAKE_ANDROID_ARCH_ABI\u003darm64-v8a \\\n  -DANDROID_NDK\u003d/Users/bytedance/Library/Android/sdk/ndk/25.1.8937393 \\\n  -DCMAKE_ANDROID_NDK\u003d/Users/bytedance/Library/Android/sdk/ndk/25.1.8937393 \\\n  -DCMAKE_TOOLCHAIN_FILE\u003d/Users/bytedance/Library/Android/sdk/ndk/25.1.8937393/build/cmake/android.toolchain.cmake \\\n  -DCMAKE_MAKE_PROGRAM\u003d/Users/bytedance/Library/Android/sdk/cmake/3.22.1/bin/ninja \\\n  -DCMAKE_CXX_FLAGS\u003d-std\u003dc++17 \\\n  -DCMAKE_LIBRARY_OUTPUT_DIRECTORY\u003d/Users/bytedance/Developer/Github/cough_detect/app/build/intermediates/cxx/Debug/v6hk403e/obj/arm64-v8a \\\n  -DCMAKE_RUNTIME_OUTPUT_DIRECTORY\u003d/Users/bytedance/Developer/Github/cough_detect/app/build/intermediates/cxx/Debug/v6hk403e/obj/arm64-v8a \\\n  -DCMAKE_BUILD_TYPE\u003dDebug \\\n  -DCMAKE_FIND_ROOT_PATH\u003d/Users/bytedance/Developer/Github/cough_detect/app/.cxx/Debug/v6hk403e/prefab/arm64-v8a/prefab \\\n  -B/Users/bytedance/Developer/Github/cough_detect/app/.cxx/Debug/v6hk403e/arm64-v8a \\\n  -GNinja \\\n  -DANDROID_STL\u003dc++_shared\n",
+    "file_": "/Users/bytedance/Developer/Github/cough_detect/app/src/main/cpp/CMakeLists.txt",
+    "tag_": "debug|arm64-v8a",
+    "diagnosticCode_": 0,
+    "memoizedIsInitialized": 1,
+    "unknownFields": {
+      "fields": {}
+    },
+    "memoizedSize": -1,
+    "memoizedHashCode": 0
+  },
+  {
+    "level_": 0,
+    "message_": "JSON generation completed with problem. Exception: com.android.ide.common.process.ProcessException: -- Configuring incomplete, errors occurred!\nSee also \"/Users/bytedance/Developer/Github/cough_detect/app/.cxx/Debug/v6hk403e/arm64-v8a/CMakeFiles/CMakeOutput.log\".\n\nC++ build system [configure] failed while executing:\n    /Users/bytedance/Library/Android/sdk/cmake/3.22.1/bin/cmake \\\n      -H/Users/bytedance/Developer/Github/cough_detect/app/src/main/cpp \\\n      -DCMAKE_SYSTEM_NAME\u003dAndroid \\\n      -DCMAKE_EXPORT_COMPILE_COMMANDS\u003dON \\\n      -DCMAKE_SYSTEM_VERSION\u003d24 \\\n      -DANDROID_PLATFORM\u003dandroid-24 \\\n      -DANDROID_ABI\u003darm64-v8a \\\n      -DCMAKE_ANDROID_ARCH_ABI\u003darm64-v8a \\\n      -DANDROID_NDK\u003d/Users/bytedance/Library/Android/sdk/ndk/25.1.8937393 \\\n      -DCMAKE_ANDROID_NDK\u003d/Users/bytedance/Library/Android/sdk/ndk/25.1.8937393 \\\n      -DCMAKE_TOOLCHAIN_FILE\u003d/Users/bytedance/Library/Android/sdk/ndk/25.1.8937393/build/cmake/android.toolchain.cmake \\\n      -DCMAKE_MAKE_PROGRAM\u003d/Users/bytedance/Library/Android/sdk/cmake/3.22.1/bin/ninja \\\n      -DCMAKE_CXX_FLAGS\u003d-std\u003dc++17 \\\n      -DCMAKE_LIBRARY_OUTPUT_DIRECTORY\u003d/Users/bytedance/Developer/Github/cough_detect/app/build/intermediates/cxx/Debug/v6hk403e/obj/arm64-v8a \\\n      -DCMAKE_RUNTIME_OUTPUT_DIRECTORY\u003d/Users/bytedance/Developer/Github/cough_detect/app/build/intermediates/cxx/Debug/v6hk403e/obj/arm64-v8a \\\n      -DCMAKE_BUILD_TYPE\u003dDebug \\\n      -DCMAKE_FIND_ROOT_PATH\u003d/Users/bytedance/Developer/Github/cough_detect/app/.cxx/Debug/v6hk403e/prefab/arm64-v8a/prefab \\\n      -B/Users/bytedance/Developer/Github/cough_detect/app/.cxx/Debug/v6hk403e/arm64-v8a \\\n      -GNinja \\\n      -DANDROID_STL\u003dc++_shared\n  from /Users/bytedance/Developer/Github/cough_detect/app\nCMake Error at CMakeLists.txt:18 (find_package):\n  Could not find a package configuration file provided by \"tensorflow-lite\"\n  with any of the following names:\n\n    tensorflow-liteConfig.cmake\n    tensorflow-lite-config.cmake\n\n  Add the installation prefix of \"tensorflow-lite\" to CMAKE_PREFIX_PATH or\n  set \"tensorflow-lite_DIR\" to a directory containing one of the above files.\n  If \"tensorflow-lite\" provides a separate development package or SDK, be\n  sure it has been installed.",
+    "file_": "/Users/bytedance/Developer/Github/cough_detect/app/src/main/cpp/CMakeLists.txt",
+    "tag_": "debug|arm64-v8a",
+    "diagnosticCode_": 0,
+    "memoizedIsInitialized": 1,
+    "unknownFields": {
+      "fields": {}
+    },
+    "memoizedSize": -1,
+    "memoizedHashCode": 0
+  }
+]

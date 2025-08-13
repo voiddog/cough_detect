@@ -1,0 +1,4 @@
+ninja: Entering directory `/Users/bytedance/Developer/Github/cough_detect/app/.cxx/Debug/v6hk403e/armeabi-v7a'
+[1/3] Building CXX object CMakeFiles/coughdetect.dir/tensorflow_wrapper.cpp.o
+[2/3] Building CXX object CMakeFiles/coughdetect.dir/cough_detect_engine.cpp.o
+[3/3] Linking CXX shared library /Users/bytedance/Developer/Github/cough_detect/app/build/intermediates/cxx/Debug/v6hk403e/obj/armeabi-v7a/libcoughdetect.so

@@ -1,0 +1,3 @@
+/Users/bytedance/Developer/Github/cough_detect/app/.cxx/Debug/4l3i492h/x86_64/CMakeFiles/coughdetect.dir
+/Users/bytedance/Developer/Github/cough_detect/app/.cxx/Debug/4l3i492h/x86_64/CMakeFiles/edit_cache.dir
+/Users/bytedance/Developer/Github/cough_detect/app/.cxx/Debug/4l3i492h/x86_64/CMakeFiles/rebuild_cache.dir

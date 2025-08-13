@@ -1,0 +1,27 @@
+{
+  "buildFiles": [
+    "/Users/bytedance/Developer/Github/cough_detect/app/src/main/cpp/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/bytedance/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/bytedance/Developer/Github/cough_detect/app/.cxx/Debug/4l3i492h/x86_64",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/bytedance/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/bytedance/Developer/Github/cough_detect/app/.cxx/Debug/4l3i492h/x86_64",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "coughdetect::@6890427a1f51a3e7e1df": {
+      "artifactName": "coughdetect",
+      "abi": "x86_64",
+      "output": "/Users/bytedance/Developer/Github/cough_detect/app/build/intermediates/cxx/Debug/4l3i492h/obj/x86_64/libcoughdetect.so",
+      "runtimeFiles": []
+    }
+  }
+}

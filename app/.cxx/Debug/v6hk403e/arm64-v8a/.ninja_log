@@ -1,0 +1,6 @@
+# ninja log v5
+1	780	1755095014237775820	CMakeFiles/coughdetect.dir/audio_recorder.cpp.o	638c98654e6ed426
+4	711	1755095014165606011	CMakeFiles/coughdetect.dir/jni_interface.cpp.o	462d666b434ee86d
+1	662	1755095164783891537	CMakeFiles/coughdetect.dir/tensorflow_wrapper.cpp.o	2417e3c3204e0f9f
+1	663	1755095164785184729	CMakeFiles/coughdetect.dir/cough_detect_engine.cpp.o	bb7bf4f7ab184aac
+664	813	1755095164935904438	/Users/bytedance/Developer/Github/cough_detect/app/build/intermediates/cxx/Debug/v6hk403e/obj/arm64-v8a/libcoughdetect.so	3affe19edc376c3c

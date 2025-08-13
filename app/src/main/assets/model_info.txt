@@ -1,0 +1,30 @@
+TensorFlow Lite 咳嗽检测模型说明
+=====================================
+
+模型文件名: cough_detection_model.tflite
+
+当前状态: 
+- 应用已配置为使用TensorFlow Lite进行咳嗽检测
+- 如果没有提供模型文件，系统将自动使用基于规则的检测算法作为后备方案
+
+模型规格:
+- 输入: 16000个浮点数 (1秒的16kHz音频)
+- 输出: 2个浮点数 [非咳嗽概率, 咳嗽概率]
+- 格式: TensorFlow Lite (.tflite)
+
+如何添加模型:
+1. 将训练好的 .tflite 模型文件重命名为 "cough_detection_model.tflite"
+2. 将文件放置在 app/src/main/assets/ 目录下
+3. 重新构建应用
+
+推荐的模型训练数据:
+- 采样率: 16kHz
+- 音频长度: 1秒片段
+- 特征: MFCC (Mel-frequency cepstral coefficients)
+- 标签: 二分类 (咳嗽/非咳嗽)
+
+备注:
+- 当前实现包含了完整的音频预处理管道
+- 支持MFCC特征提取
+- 包含基于规则的检测作为后备方案
+- 应用会自动检测模型文件是否存在并相应地选择检测方法

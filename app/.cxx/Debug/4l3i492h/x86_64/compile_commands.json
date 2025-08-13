@@ -1,0 +1,22 @@
+[
+{
+  "directory": "/Users/bytedance/Developer/Github/cough_detect/app/.cxx/Debug/4l3i492h/x86_64",
+  "command": "/Users/bytedance/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=x86_64-none-linux-android24 --sysroot=/Users/bytedance/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -Dcoughdetect_EXPORTS -I/Users/bytedance/Developer/Github/cough_detect/app/src/main/cpp/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++17 -fno-limit-debug-info  -fPIC -Wall -Wextra -O2 -fPIC -std=c++17 -o CMakeFiles/coughdetect.dir/cough_detect_engine.cpp.o -c /Users/bytedance/Developer/Github/cough_detect/app/src/main/cpp/cough_detect_engine.cpp",
+  "file": "/Users/bytedance/Developer/Github/cough_detect/app/src/main/cpp/cough_detect_engine.cpp"
+},
+{
+  "directory": "/Users/bytedance/Developer/Github/cough_detect/app/.cxx/Debug/4l3i492h/x86_64",
+  "command": "/Users/bytedance/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=x86_64-none-linux-android24 --sysroot=/Users/bytedance/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -Dcoughdetect_EXPORTS -I/Users/bytedance/Developer/Github/cough_detect/app/src/main/cpp/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++17 -fno-limit-debug-info  -fPIC -Wall -Wextra -O2 -fPIC -std=c++17 -o CMakeFiles/coughdetect.dir/audio_recorder.cpp.o -c /Users/bytedance/Developer/Github/cough_detect/app/src/main/cpp/audio_recorder.cpp",
+  "file": "/Users/bytedance/Developer/Github/cough_detect/app/src/main/cpp/audio_recorder.cpp"
+},
+{
+  "directory": "/Users/bytedance/Developer/Github/cough_detect/app/.cxx/Debug/4l3i492h/x86_64",
+  "command": "/Users/bytedance/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=x86_64-none-linux-android24 --sysroot=/Users/bytedance/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -Dcoughdetect_EXPORTS -I/Users/bytedance/Developer/Github/cough_detect/app/src/main/cpp/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++17 -fno-limit-debug-info  -fPIC -Wall -Wextra -O2 -fPIC -std=c++17 -o CMakeFiles/coughdetect.dir/tensorflow_wrapper.cpp.o -c /Users/bytedance/Developer/Github/cough_detect/app/src/main/cpp/tensorflow_wrapper.cpp",
+  "file": "/Users/bytedance/Developer/Github/cough_detect/app/src/main/cpp/tensorflow_wrapper.cpp"
+},
+{
+  "directory": "/Users/bytedance/Developer/Github/cough_detect/app/.cxx/Debug/4l3i492h/x86_64",
+  "command": "/Users/bytedance/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=x86_64-none-linux-android24 --sysroot=/Users/bytedance/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -Dcoughdetect_EXPORTS -I/Users/bytedance/Developer/Github/cough_detect/app/src/main/cpp/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++17 -fno-limit-debug-info  -fPIC -Wall -Wextra -O2 -fPIC -std=c++17 -o CMakeFiles/coughdetect.dir/jni_interface.cpp.o -c /Users/bytedance/Developer/Github/cough_detect/app/src/main/cpp/jni_interface.cpp",
+  "file": "/Users/bytedance/Developer/Github/cough_detect/app/src/main/cpp/jni_interface.cpp"
+}
+]

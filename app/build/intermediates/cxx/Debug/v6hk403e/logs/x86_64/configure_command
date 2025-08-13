@@ -1,0 +1,20 @@
+/Users/bytedance/Library/Android/sdk/cmake/3.22.1/bin/cmake \
+  -H/Users/bytedance/Developer/Github/cough_detect/app/src/main/cpp \
+  -DCMAKE_SYSTEM_NAME=Android \
+  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+  -DCMAKE_SYSTEM_VERSION=24 \
+  -DANDROID_PLATFORM=android-24 \
+  -DANDROID_ABI=x86_64 \
+  -DCMAKE_ANDROID_ARCH_ABI=x86_64 \
+  -DANDROID_NDK=/Users/bytedance/Library/Android/sdk/ndk/25.1.8937393 \
+  -DCMAKE_ANDROID_NDK=/Users/bytedance/Library/Android/sdk/ndk/25.1.8937393 \
+  -DCMAKE_TOOLCHAIN_FILE=/Users/bytedance/Library/Android/sdk/ndk/25.1.8937393/build/cmake/android.toolchain.cmake \
+  -DCMAKE_MAKE_PROGRAM=/Users/bytedance/Library/Android/sdk/cmake/3.22.1/bin/ninja \
+  -DCMAKE_CXX_FLAGS=-std=c++17 \
+  -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/Users/bytedance/Developer/Github/cough_detect/app/build/intermediates/cxx/Debug/v6hk403e/obj/x86_64 \
+  -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/Users/bytedance/Developer/Github/cough_detect/app/build/intermediates/cxx/Debug/v6hk403e/obj/x86_64 \
+  -DCMAKE_BUILD_TYPE=Debug \
+  -DCMAKE_FIND_ROOT_PATH=/Users/bytedance/Developer/Github/cough_detect/app/.cxx/Debug/v6hk403e/prefab/x86_64/prefab \
+  -B/Users/bytedance/Developer/Github/cough_detect/app/.cxx/Debug/v6hk403e/x86_64 \
+  -GNinja \
+  -DANDROID_STL=c++_shared
