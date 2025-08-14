@@ -11,18 +11,18 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class CoughDetectionViewModel(application: Application) : AndroidViewModel(application) {
-    
+
     companion object {
         private const val TAG = "CoughDetectionViewModel"
     }
-    
+
     private val repository = CoughDetectionRepository(application)
     private val audioPlayer = AudioPlayer(application)
-    
+
     // UI States
     private val _uiState = MutableStateFlow(CoughDetectionUiState())
     val uiState: StateFlow<CoughDetectionUiState> = _uiState.asStateFlow()
-    
+
     // Cough records from database
     val coughRecords: StateFlow<List<CoughRecord>> = repository.getAllCoughRecords()
         .stateIn(
@@ -30,24 +30,24 @@ class CoughDetectionViewModel(application: Application) : AndroidViewModel(appli
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
-    
+
     // Detection state
     val detectionState = repository.detectionState
-    
+
     // Audio level for visualization
     val audioLevel = repository.audioLevel
-    
+
     // Last detection result
     val lastDetectionResult = repository.lastDetectionResult
-    
+
     // Errors
     val error = repository.error
-    
+
     // Audio playback states
     val isPlaying = audioPlayer.isPlaying
     val currentPlayingFile = audioPlayer.currentPlayingFile
     val playbackError = audioPlayer.error
-    
+
     data class CoughDetectionUiState(
         val isInitialized: Boolean = false,
         val isLoading: Boolean = true,
@@ -56,32 +56,30 @@ class CoughDetectionViewModel(application: Application) : AndroidViewModel(appli
         val selectedRecord: CoughRecord? = null,
         val message: String? = null
     )
-    
+
     init {
         initializeRepository()
     }
-    
+
     private fun initializeRepository() {
         viewModelScope.launch {
             try {
                 val startTime = System.currentTimeMillis()
                 Log.i(TAG, "🚀 ViewModel开始初始化...")
-                
+
                 _uiState.value = _uiState.value.copy(isLoading = true)
-                
+
                 val initialized = repository.initialize()
                 val initTime = System.currentTimeMillis() - startTime
-                
+
                 _uiState.value = _uiState.value.copy(
                     isInitialized = initialized,
                     isLoading = false
                 )
-                
+
                 if (initialized) {
                     Log.i(TAG, "✅ ViewModel初始化成功，总耗时: ${initTime}ms")
-                    
-                    // 启动数据流监控
-                    startDataFlowMonitoring()
+
                 } else {
                     Log.e(TAG, "❌ ViewModel初始化失败，耗时: ${initTime}ms")
                 }
@@ -95,42 +93,17 @@ class CoughDetectionViewModel(application: Application) : AndroidViewModel(appli
             }
         }
     }
-    
-    private fun startDataFlowMonitoring() {
-        // 监控检测状态变化
-        viewModelScope.launch {
-            detectionState.collect { state ->
-                Log.d(TAG, "检测状态变化: ${state.name}")
-            }
-        }
-        
-        // 监控咳嗽记录变化
-        viewModelScope.launch {
-            coughRecords.collect { records ->
-                Log.d(TAG, "咳嗽记录更新: ${records.size}条记录")
-            }
-        }
-        
-        // 监控错误状态
-        viewModelScope.launch {
-            error.collect { error ->
-                if (error != null) {
-                    Log.e(TAG, "检测到错误: $error")
-                }
-            }
-        }
-    }
-    
+
     // Detection Control Functions
     fun startDetection() {
         viewModelScope.launch {
             try {
                 Log.i(TAG, "🎬 用户请求开始检测...")
                 val startTime = System.currentTimeMillis()
-                
+
                 val success = repository.startDetection()
                 val operationTime = System.currentTimeMillis() - startTime
-                
+
                 if (success) {
                     Log.i(TAG, "✅ 检测启动成功，耗时: ${operationTime}ms")
                     _uiState.value = _uiState.value.copy(
@@ -150,7 +123,7 @@ class CoughDetectionViewModel(application: Application) : AndroidViewModel(appli
             }
         }
     }
-    
+
     fun pauseDetection() {
         viewModelScope.launch {
             try {
@@ -164,7 +137,7 @@ class CoughDetectionViewModel(application: Application) : AndroidViewModel(appli
             }
         }
     }
-    
+
     fun resumeDetection() {
         viewModelScope.launch {
             try {
@@ -178,7 +151,7 @@ class CoughDetectionViewModel(application: Application) : AndroidViewModel(appli
             }
         }
     }
-    
+
     fun stopDetection() {
         viewModelScope.launch {
             try {
@@ -192,16 +165,16 @@ class CoughDetectionViewModel(application: Application) : AndroidViewModel(appli
             }
         }
     }
-    
+
     // Record Management Functions
     fun showClearConfirmDialog() {
         _uiState.value = _uiState.value.copy(showClearConfirmDialog = true)
     }
-    
+
     fun hideClearConfirmDialog() {
         _uiState.value = _uiState.value.copy(showClearConfirmDialog = false)
     }
-    
+
     fun clearAllRecords() {
         viewModelScope.launch {
             try {
@@ -219,7 +192,7 @@ class CoughDetectionViewModel(application: Application) : AndroidViewModel(appli
             }
         }
     }
-    
+
     fun deleteRecord(record: CoughRecord) {
         viewModelScope.launch {
             try {
@@ -233,58 +206,58 @@ class CoughDetectionViewModel(application: Application) : AndroidViewModel(appli
             }
         }
     }
-    
+
     fun selectRecord(record: CoughRecord?) {
         _uiState.value = _uiState.value.copy(selectedRecord = record)
     }
-    
+
     // Permission handling
     fun showPermissionDialog() {
         _uiState.value = _uiState.value.copy(showPermissionDialog = true)
     }
-    
+
     fun hidePermissionDialog() {
         _uiState.value = _uiState.value.copy(showPermissionDialog = false)
     }
-    
+
     fun shouldShowPermissionDialog(): Boolean {
         return !_uiState.value.isInitialized && !_uiState.value.isLoading
     }
-    
+
     // Statistics Functions
     suspend fun getCoughRecordCount(): Int {
         return repository.getCoughRecordCount()
     }
-    
+
     suspend fun getAverageConfidence(): Float? {
         return repository.getAverageConfidence()
     }
-    
+
     suspend fun getCoughRecordsInTimeRange(startTime: Long, endTime: Long): Flow<List<CoughRecord>> {
         return repository.getCoughRecordsInTimeRange(startTime, endTime)
     }
-    
+
     // Utility Functions
     fun clearMessage() {
         _uiState.value = _uiState.value.copy(message = null)
     }
-    
+
     fun clearError() {
         repository.clearError()
     }
-    
+
     fun isRecording(): Boolean {
         return repository.isRecording()
     }
-    
+
     fun isPaused(): Boolean {
         return repository.isPaused()
     }
-    
+
     fun isProcessing(): Boolean {
         return repository.isProcessing()
     }
-    
+
     // Get detection status text
     fun getDetectionStatusText(): String {
         return when (detectionState.value) {
@@ -294,7 +267,7 @@ class CoughDetectionViewModel(application: Application) : AndroidViewModel(appli
             CoughDetectionRepository.DetectionState.PROCESSING -> "处理中..."
         }
     }
-    
+
     // Get button text based on current state
     fun getMainButtonText(): String {
         return when (detectionState.value) {
@@ -304,7 +277,7 @@ class CoughDetectionViewModel(application: Application) : AndroidViewModel(appli
             CoughDetectionRepository.DetectionState.PROCESSING -> "处理中..."
         }
     }
-    
+
     // Handle main button click
     fun onMainButtonClick() {
         when (detectionState.value) {
@@ -316,12 +289,12 @@ class CoughDetectionViewModel(application: Application) : AndroidViewModel(appli
             }
         }
     }
-    
+
     // Get formatted statistics
     suspend fun getFormattedStats(): String {
         val count = getCoughRecordCount()
         val avgConfidence = getAverageConfidence()
-        
+
         return buildString {
             appendLine("总咳嗽次数: $count")
             if (avgConfidence != null) {
@@ -329,7 +302,7 @@ class CoughDetectionViewModel(application: Application) : AndroidViewModel(appli
             }
         }
     }
-    
+
     // Audio playback functions
     fun playRecord(record: CoughRecord) {
         viewModelScope.launch {
@@ -345,26 +318,26 @@ class CoughDetectionViewModel(application: Application) : AndroidViewModel(appli
             }
         }
     }
-    
+
     fun stopPlayback() {
         audioPlayer.stop()
         Log.d(TAG, "停止音频播放")
     }
-    
+
     fun pausePlayback() {
         audioPlayer.pause()
         Log.d(TAG, "暂停音频播放")
     }
-    
+
     fun resumePlayback() {
         audioPlayer.resume()
         Log.d(TAG, "恢复音频播放")
     }
-    
+
     fun isRecordPlaying(record: CoughRecord): Boolean {
         return audioPlayer.isCurrentlyPlaying(record.audioFilePath)
     }
-    
+
     fun clearPlaybackError() {
         audioPlayer.clearError()
     }

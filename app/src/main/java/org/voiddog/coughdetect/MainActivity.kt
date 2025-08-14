@@ -16,8 +16,12 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import android.util.Log
 import android.app.AlertDialog
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import org.voiddog.coughdetect.BuildConfig
 import org.voiddog.coughdetect.ui.CoughDetectionScreen
+import org.voiddog.coughdetect.ui.SettingsScreen
 import org.voiddog.coughdetect.ui.theme.CoughDetectTheme
 import org.voiddog.coughdetect.viewmodel.CoughDetectionViewModel
 import kotlinx.coroutines.launch
@@ -65,7 +69,23 @@ class MainActivity : ComponentActivity() {
                 ) {
                     // 只有在有权限时才显示主界面
                     if (hasCheckedPermissions && arePermissionsGranted()) {
-                        CoughDetectionScreen(viewModel = viewModel)
+                        val navController = rememberNavController()
+                        NavHost(
+                            navController = navController,
+                            startDestination = "main"
+                        ) {
+                            composable("main") {
+                                CoughDetectionScreen(
+                                    viewModel = viewModel,
+                                    onSettingsClick = { navController.navigate("settings") }
+                                )
+                            }
+                            composable("settings") {
+                                SettingsScreen(
+                                    onBackClick = { navController.popBackStack() }
+                                )
+                            }
+                        }
                     }
                 }
             }

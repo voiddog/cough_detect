@@ -4,6 +4,7 @@
     <string name="start_detection">开始检测</string>
     <string name="pause_detection">暂停检测</string>
     <string name="clear_records">清空记录</string>
+    <string name="settings">设置</string>
     <string name="cough_detected">检测到咳嗽</string>
     <string name="no_cough_records">暂无咳嗽记录</string>
     <string name="detection_status_idle">未开始检测</string>
