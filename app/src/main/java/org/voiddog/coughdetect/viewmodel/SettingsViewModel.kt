@@ -20,6 +20,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
     
+    // 公开访问高德API Key，用于UI显示
+    val gaodeApiKey: String
+        get() = _uiState.value.gaodeApiKey
+    
     init {
         loadSettings()
         calculateCurrentCacheSize()
@@ -31,6 +35,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 val settings = settingsManager.getSettings()
                 _uiState.value = _uiState.value.copy(
                     maxAudioCacheSizeMB = settings.maxAudioCacheSizeMB,
+                    gaodeApiKey = settings.gaodeApiKey,
                     isLoading = false
                 )
             } catch (e: Exception) {
@@ -86,12 +91,17 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         _uiState.value = _uiState.value.copy(maxAudioCacheSizeMB = sizeMB)
     }
     
+    fun updateGaodeApiKey(apiKey: String) {
+        _uiState.value = _uiState.value.copy(gaodeApiKey = apiKey)
+    }
+    
     fun saveSettings() {
         viewModelScope.launch {
             try {
                 _uiState.value = _uiState.value.copy(isSaving = true, error = null)
                 val settings = Settings(
-                    maxAudioCacheSizeMB = uiState.value.maxAudioCacheSizeMB
+                    maxAudioCacheSizeMB = uiState.value.maxAudioCacheSizeMB,
+                    gaodeApiKey = uiState.value.gaodeApiKey
                 )
                 settingsManager.saveSettings(settings)
                 _uiState.value = _uiState.value.copy(
@@ -121,6 +131,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 data class SettingsUiState(
     val maxAudioCacheSizeMB: Long = 1024, // 默认1GB
     val currentAudioCacheSizeMB: Long = 0, // 当前使用的磁盘空间大小
+    val gaodeApiKey: String = "", // 高德API Key
     val isLoading: Boolean = true,
     val isSaving: Boolean = false,
     val isCalculatingCacheSize: Boolean = false, // 是否正在计算缓存大小

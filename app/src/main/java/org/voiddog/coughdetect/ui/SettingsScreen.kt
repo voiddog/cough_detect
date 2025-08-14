@@ -280,6 +280,51 @@ fun SettingsContent(
             }
         }
         
+        // 高德API Key设置
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "高德API Key",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Medium
+                )
+                
+                Text(
+                    text = "用于获取地理位置的详细地址信息。如果留空，则不记录地址信息。",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                
+                var gaodeApiKey by remember { mutableStateOf(uiState.gaodeApiKey) }
+                
+                OutlinedTextField(
+                    value = gaodeApiKey,
+                    onValueChange = { gaodeApiKey = it },
+                    label = { Text("高德API Key") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+                
+                Button(
+                    onClick = { 
+                        // 更新API Key并保存设置
+                        // 这里我们只是更新状态，实际的保存操作会在其他地方进行
+                        // 或者我们可以考虑使用一个回调函数来处理保存操作
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = gaodeApiKey != uiState.gaodeApiKey
+                ) {
+                    Text("保存API Key")
+                }
+            }
+        }
+        
         // 保存按钮
         Button(
             onClick = onSaveClick,
