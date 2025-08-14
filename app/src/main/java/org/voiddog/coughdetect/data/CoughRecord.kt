@@ -21,6 +21,7 @@ data class CoughRecord(
     val confidence: Float = 0.0f, // 检测置信度
     val amplitude: Float = 0.0f, // 音频振幅
     val eventType: String = AudioEventType.COUGH.name, // 音频事件类型
+    val extension: String = "{}", // 扩展字段，用于存储 JSON 格式的额外数据
     val createdAt: Date = Date()
 ) {
     fun getFormattedTimestamp(): String {

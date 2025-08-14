@@ -20,6 +20,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import org.voiddog.coughdetect.BuildConfig
+import org.voiddog.coughdetect.plugin.GpsPlugin
+import org.voiddog.coughdetect.plugin.WeatherPlugin
 import org.voiddog.coughdetect.ui.CoughDetectionScreen
 import org.voiddog.coughdetect.ui.SettingsScreen
 import org.voiddog.coughdetect.ui.theme.CoughDetectTheme
@@ -61,6 +63,9 @@ class MainActivity : ComponentActivity() {
 
         checkAndRequestPermissions()
 
+        // 注册插件
+        registerPlugins()
+
         setContent {
             CoughDetectTheme {
                 Surface(
@@ -92,6 +97,16 @@ class MainActivity : ComponentActivity() {
         }
 
         Log.i(TAG, "✅ MainActivity创建完成")
+    }
+
+    private fun registerPlugins() {
+        // 注册 GPS 插件
+        viewModel.repository.registerPlugin(GpsPlugin())
+        
+        // 注册天气插件
+        viewModel.repository.registerPlugin(WeatherPlugin())
+        
+        Log.d(TAG, "插件注册完成")
     }
 
     private fun checkAndRequestPermissions() {

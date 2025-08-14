@@ -7,6 +7,7 @@ import org.voiddog.coughdetect.data.CoughDetectDatabase
 import org.voiddog.coughdetect.data.CoughRecordDao
 import org.voiddog.coughdetect.engine.CoughDetectEngine
 import org.voiddog.coughdetect.data.SettingsManager
+import org.voiddog.coughdetect.plugin.AudioEventRecordPlugin
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.io.File
@@ -14,30 +15,33 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class CoughDetectionRepository(private val context: Context) {
-
+    
     companion object {
         private const val TAG = "CoughDetectionRepository"
         private const val MIN_COUGH_DURATION_MS = 200L // Minimum duration for a valid cough
         private const val MAX_COUGH_DURATION_MS = 3000L // Maximum duration for a single cough
     }
-
+    
     private val database = CoughDetectDatabase.getDatabase(context)
     private val coughRecordDao: CoughRecordDao = database.coughRecordDao()
     private val coughDetectEngine = CoughDetectEngine(context)
     private val settingsManager = SettingsManager.getInstance(context)
-
+    
+    // 插件列表
+    private val plugins = mutableListOf<AudioEventRecordPlugin>()
+    
     private val _detectionState = MutableStateFlow(DetectionState.IDLE)
     val detectionState: StateFlow<DetectionState> = _detectionState.asStateFlow()
-
+    
     private val _audioLevel = MutableStateFlow(0f)
     val audioLevel: StateFlow<Float> = _audioLevel.asStateFlow()
-
+    
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
-
+    
     private val _lastDetectionResult = MutableStateFlow<CoughDetectionResult?>(null)
     val lastDetectionResult: StateFlow<CoughDetectionResult?> = _lastDetectionResult.asStateFlow()
-
+    
     private var detectionJob: Job? = null
     private var currentAudioBuffer = mutableListOf<Float>()
     private var coughStartTime = 0L
@@ -52,7 +56,19 @@ class CoughDetectionRepository(private val context: Context) {
         val timestamp: Long = System.currentTimeMillis()
     )
 
-    // Initialize the repository
+    /**
+     * 注册插件
+     * @param plugin 要注册的插件
+     */
+    fun registerPlugin(plugin: AudioEventRecordPlugin) {
+        plugins.add(plugin)
+        plugin.initialize(context)
+        Log.d(TAG, "插件已注册: ${plugin.name}")
+    }
+    
+    /**
+     * 初始化仓库
+     */
     suspend fun initialize(): Boolean {
         return try {
             val startTime = System.currentTimeMillis()
@@ -401,8 +417,8 @@ class CoughDetectionRepository(private val context: Context) {
                 Log.w(TAG, "⚠️ ${eventType.displayName}事件没有音频数据，只保存数据库记录，不创建音频文件")
             }
 
-            // Create database record
-            val audioRecord = CoughRecord(
+            // 创建基本的数据库记录
+            val baseRecord = CoughRecord(
                 timestamp = timestamp,
                 audioFilePath = audioFilePath, // 可能为空字符串
                 duration = duration,
@@ -411,6 +427,12 @@ class CoughDetectionRepository(private val context: Context) {
                 eventType = eventType.name,
                 createdAt = Date(timestamp)
             )
+
+            // 使用插件处理记录，获取扩展数据
+            val extensionData = processRecordWithPlugins(baseRecord)
+
+            // 创建包含扩展数据的最终记录
+            val audioRecord = baseRecord.copy(extension = extensionData)
 
             // Save to database
             val recordId = coughRecordDao.insertRecord(audioRecord)
@@ -441,6 +463,68 @@ class CoughDetectionRepository(private val context: Context) {
             // 注意：这里不能直接更新 _error.value，因为可能不在主线程
             throw e
         }
+    }
+
+    /**
+     * 使用插件处理记录，获取扩展数据
+     * @param record 基本的音频事件记录
+     * @return 包含扩展数据的 JSON 字符串
+     */
+    private fun processRecordWithPlugins(record: CoughRecord): String {
+        try {
+            // 如果没有插件，返回默认的空 JSON 对象
+            if (plugins.isEmpty()) {
+                return "{}"
+            }
+
+            // 创建一个 JSON 对象来存储所有插件的数据
+            val extensionJson = mutableMapOf<String, Any>()
+
+            // 遍历所有插件，收集它们的扩展数据
+            for (plugin in plugins) {
+                try {
+                    val pluginData = plugin.processRecord(record)
+                    // 将插件数据解析为 JSON 对象并添加到主对象中
+                    // 这里为了简化，我们假设插件返回的是一个简单的 JSON 对象字符串
+                    // 在实际应用中，你可能需要使用一个 JSON 解析库来合并对象
+                    extensionJson[plugin.name] = pluginData
+                } catch (e: Exception) {
+                    Log.e(TAG, "插件 ${plugin.name} 处理记录时出错", e)
+                }
+            }
+
+            // 将 map 转换为 JSON 字符串
+            // 这里我们使用一个简单的实现，实际应用中应该使用专门的 JSON 库
+            return convertMapToJson(extensionJson)
+        } catch (e: Exception) {
+            Log.e(TAG, "处理插件数据时出错", e)
+            return "{}" // 返回默认的空 JSON 对象
+        }
+    }
+
+    /**
+     * 将 Map 转换为 JSON 字符串
+     * 注意：这是一个简化的实现，实际应用中应该使用专门的 JSON 库如 Gson 或 kotlinx.serialization
+     * @param map 要转换的 Map
+     * @return JSON 字符串
+     */
+    private fun convertMapToJson(map: Map<String, Any>): String {
+        if (map.isEmpty()) return "{}"
+
+        val json = StringBuilder()
+        json.append("{")
+
+        val entries = map.entries
+        for ((index, entry) in entries.withIndex()) {
+            // 简化处理：假设所有值都是字符串
+            json.append("\"${entry.key}\":\"${entry.value}\"")
+            if (index < entries.size - 1) {
+                json.append(",")
+            }
+        }
+
+        json.append("}")
+        return json.toString()
     }
 
     /**

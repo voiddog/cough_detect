@@ -16,7 +16,9 @@ class CoughDetectionViewModel(application: Application) : AndroidViewModel(appli
         private const val TAG = "CoughDetectionViewModel"
     }
 
-    private val repository = CoughDetectionRepository(application)
+    private val coughDetectionRepository = CoughDetectionRepository(application)
+    val repository: CoughDetectionRepository
+        get() = coughDetectionRepository
     private val audioPlayer = AudioPlayer(application)
 
     // UI States
