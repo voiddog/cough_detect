@@ -41,19 +41,22 @@ class MainActivity : ComponentActivity() {
     private var hasCheckedPermissions = false
 
     private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        Log.i(TAG, "录音权限请求结果: $isGranted")
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        Log.i(TAG, "权限请求结果: $permissions")
 
         hasCheckedPermissions = true
 
-        if (isGranted) {
-            Log.i(TAG, "✅ 录音权限已授予")
+        // 检查所有必需的权限是否都被授予
+        val allPermissionsGranted = permissions.values.all { it }
+        
+        if (allPermissionsGranted) {
+            Log.i(TAG, "✅ 所有必需权限已授予")
             lifecycleScope.launch {
                 // Reinitialize if needed
             }
         } else {
-            Log.w(TAG, "⚠️ 录音权限被拒绝，显示权限对话框")
+            Log.w(TAG, "⚠️ 部分权限被拒绝，显示权限对话框")
             showPermissionDeniedDialog()
         }
     }
@@ -108,16 +111,6 @@ class MainActivity : ComponentActivity() {
         Log.i(TAG, "✅ MainActivity创建完成")
     }
 
-    private fun registerPlugins() {
-        // 注册 GPS 插件
-        viewModel.repository.registerPlugin(GpsPlugin())
-        
-        // 注册天气插件
-        viewModel.repository.registerPlugin(WeatherPlugin())
-        
-        Log.d(TAG, "插件注册完成")
-    }
-
     private fun checkAndRequestPermissions() {
         // 只有在没有检查过权限或者权限未授予时才检查
         if (hasCheckedPermissions) {
@@ -127,19 +120,43 @@ class MainActivity : ComponentActivity() {
 
         Log.i(TAG, "🔐 检查应用权限...")
 
-        val audioPermission = ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.RECORD_AUDIO
-        )
+        val permissionsToRequest = mutableListOf<String>()
+        
+        // 检查录音权限
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.RECORD_AUDIO
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            permissionsToRequest.add(Manifest.permission.RECORD_AUDIO)
+        }
+        
+        // 检查精确位置权限
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            permissionsToRequest.add(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+        
+        // 检查粗略位置权限
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            permissionsToRequest.add(Manifest.permission.ACCESS_COARSE_LOCATION)
+        }
 
-        Log.d(TAG, "当前权限状态 - 录音: ${if (audioPermission == PackageManager.PERMISSION_GRANTED) "已授予" else "未授予"}")
+        Log.d(TAG, "需要请求的权限: $permissionsToRequest")
 
-        if (audioPermission != PackageManager.PERMISSION_GRANTED) {
-            Log.i(TAG, "需要请求录音权限")
+        if (permissionsToRequest.isNotEmpty()) {
+            Log.i(TAG, "需要请求权限")
             hasCheckedPermissions = true
-            requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+            requestPermissionLauncher.launch(permissionsToRequest.toTypedArray())
         } else {
-            Log.i(TAG, "✅ 录音权限已授予")
+            Log.i(TAG, "✅ 所有必需权限已授予")
             hasCheckedPermissions = true
         }
     }
@@ -148,7 +165,15 @@ class MainActivity : ComponentActivity() {
         return ContextCompat.checkSelfPermission(
             this,
             Manifest.permission.RECORD_AUDIO
-        ) == PackageManager.PERMISSION_GRANTED
+        ) == PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun showPermissionDeniedDialog() {
@@ -188,5 +213,15 @@ class MainActivity : ComponentActivity() {
     override fun onPause() {
         super.onPause()
         Log.d(TAG, "📱 MainActivity进入后台")
+    }
+    
+    private fun registerPlugins() {
+        // 注册 GPS 插件
+        viewModel.repository.registerPlugin(GpsPlugin())
+        
+        // 注册天气插件
+        viewModel.repository.registerPlugin(WeatherPlugin())
+        
+        Log.d(TAG, "插件注册完成")
     }
 }
