@@ -6,6 +6,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -531,12 +534,15 @@ fun AudioEventsList(
     records: List<CoughRecord>,
     onDeleteRecord: (CoughRecord) -> Unit,
     onPlayRecord: (CoughRecord) -> Unit,
-    viewModel: CoughDetectionViewModel
+    viewModel: CoughDetectionViewModel,
+    modifier: Modifier = Modifier
 ) {
     val isPlaying by viewModel.isPlaying.collectAsState()
     val currentPlayingFile by viewModel.currentPlayingFile.collectAsState()
+    val listState = rememberLazyListState()
+    
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -557,17 +563,38 @@ fun AudioEventsList(
                     modifier = Modifier.fillMaxWidth()
                 )
             } else {
-                // 不使用嵌套的LazyColumn，直接展示所有记录
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                // 使用LazyColumn实现虚拟化滚动，限制高度避免嵌套滚动问题
+                LazyColumn(
+                    state = listState,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 400.dp), // 限制最大高度
+                    // 性能优化：预加载更少的item，减少初始渲染开销
+                    reverseLayout = false,
+                    userScrollEnabled = true
                 ) {
-                    records.forEach { record ->
+                    items(
+                        items = records,
+                        key = { record -> record.id }, // 使用唯一ID作为key优化重组
+                        contentType = { "audio_event_item" } // 设置内容类型帮助Compose优化
+                    ) { record ->
+                        // 记忆化回调函数，避免每次重组都创建新的lambda
+                        val onDeleteCallback = remember(record.id) { { onDeleteRecord(record) } }
+                        val onPlayCallback = remember(record.id) { { onPlayRecord(record) } }
+                        val onStopCallback = remember { { viewModel.stopPlayback() } }
+                        
+                        // 只有当前播放的文件才需要响应播放状态变化
+                        val isCurrentlyPlaying = remember(currentPlayingFile, isPlaying, record.audioFilePath) {
+                            derivedStateOf { currentPlayingFile == record.audioFilePath && isPlaying }
+                        }.value
+                        
                         AudioEventItem(
                             record = record,
-                            onDelete = { onDeleteRecord(record) },
-                            onPlay = { onPlayRecord(record) },
-                            isPlaying = currentPlayingFile == record.audioFilePath && isPlaying,
-                            onStop = { viewModel.stopPlayback() }
+                            onDelete = onDeleteCallback,
+                            onPlay = onPlayCallback,
+                            isPlaying = isCurrentlyPlaying,
+                            onStop = onStopCallback
                         )
                     }
                 }
@@ -584,6 +611,19 @@ fun AudioEventItem(
     isPlaying: Boolean = false,
     onStop: () -> Unit = {}
 ) {
+    // 记忆化计算，避免每次重组都重新计算
+    val eventType = remember(record.id) { record.getAudioEventType() }
+    val eventDisplayName = remember(record.id) { record.getEventDisplayName() }
+    val eventColor = remember(record.id) { record.getEventColor() }
+    val formattedTimestamp = remember(record.id) { record.getFormattedTimestamp() }
+    val durationText = remember(record.id) { "%.1f".format(record.getDurationInSeconds()) }
+    val confidenceText = remember(record.id) { "${(record.confidence * 100).toInt()}%" }
+    val amplitudeText = remember(record.id) { "%.2f".format(record.amplitude) }
+    
+    val detailText = remember(record.id) {
+        "时长: ${durationText}秒 | 置信度: ${confidenceText} | 振幅: ${amplitudeText}"
+    }
+    
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -613,13 +653,13 @@ fun AudioEventItem(
             
             // 事件类型图标
             Icon(
-                when (record.getAudioEventType()) {
+                when (eventType) {
                     org.voiddog.coughdetect.data.AudioEventType.COUGH -> Icons.Default.Warning
                     org.voiddog.coughdetect.data.AudioEventType.SNORING -> Icons.Default.Settings
                     org.voiddog.coughdetect.data.AudioEventType.UNKNOWN -> Icons.Default.Info
                 },
-                contentDescription = "${record.getEventDisplayName()}事件",
-                tint = Color(record.getEventColor()),
+                contentDescription = "${eventDisplayName}事件",
+                tint = Color(eventColor),
                 modifier = Modifier.size(20.dp)
             )
             
@@ -630,23 +670,21 @@ fun AudioEventItem(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = record.getEventDisplayName(),
+                        text = eventDisplayName,
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
-                        color = Color(record.getEventColor())
+                        color = Color(eventColor)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = record.getFormattedTimestamp(),
+                        text = formattedTimestamp,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 
                 Text(
-                    text = "时长: ${"%.1f".format(record.getDurationInSeconds())}秒 | " +
-                            "置信度: ${(record.confidence * 100).toInt()}% | " +
-                            "振幅: ${"%.2f".format(record.amplitude)}",
+                    text = detailText,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
