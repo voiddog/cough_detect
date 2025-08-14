@@ -1,6 +1,0 @@
-ninja: Entering directory `/Users/bytedance/Developer/Github/cough_detect/app/.cxx/Debug/1y571g4o/x86_64'
-[1/5] Building CXX object CMakeFiles/coughdetect.dir/jni_interface.cpp.o
-[2/5] Building CXX object CMakeFiles/coughdetect.dir/tensorflow_wrapper.cpp.o
-[3/5] Building CXX object CMakeFiles/coughdetect.dir/audio_recorder.cpp.o
-[4/5] Building CXX object CMakeFiles/coughdetect.dir/cough_detect_engine.cpp.o
-[5/5] Linking CXX shared library /Users/bytedance/Developer/Github/cough_detect/app/build/intermediates/cxx/Debug/1y571g4o/obj/x86_64/libcoughdetect.so

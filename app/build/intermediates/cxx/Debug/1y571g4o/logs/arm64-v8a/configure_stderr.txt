@@ -1,4 +1,0 @@
-CMake Warning at CMakeLists.txt:22 (message):
-  TensorFlow Lite library not found, using rule-based detection only
-
-

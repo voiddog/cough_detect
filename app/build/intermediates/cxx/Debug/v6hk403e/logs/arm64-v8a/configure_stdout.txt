@@ -1,2 +1,0 @@
--- Configuring incomplete, errors occurred!
-See also "/Users/bytedance/Developer/Github/cough_detect/app/.cxx/Debug/v6hk403e/arm64-v8a/CMakeFiles/CMakeOutput.log".

@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import org.voiddog.coughdetect.data.CoughRecord
 import org.voiddog.coughdetect.repository.CoughDetectionRepository
+import org.voiddog.coughdetect.audio.AudioPlayer
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -16,6 +17,7 @@ class CoughDetectionViewModel(application: Application) : AndroidViewModel(appli
     }
     
     private val repository = CoughDetectionRepository(application)
+    private val audioPlayer = AudioPlayer(application)
     
     // UI States
     private val _uiState = MutableStateFlow(CoughDetectionUiState())
@@ -40,6 +42,11 @@ class CoughDetectionViewModel(application: Application) : AndroidViewModel(appli
     
     // Errors
     val error = repository.error
+    
+    // Audio playback states
+    val isPlaying = audioPlayer.isPlaying
+    val currentPlayingFile = audioPlayer.currentPlayingFile
+    val playbackError = audioPlayer.error
     
     data class CoughDetectionUiState(
         val isInitialized: Boolean = false,
@@ -323,8 +330,48 @@ class CoughDetectionViewModel(application: Application) : AndroidViewModel(appli
         }
     }
     
+    // Audio playback functions
+    fun playRecord(record: CoughRecord) {
+        viewModelScope.launch {
+            try {
+                val success = audioPlayer.playAudioFile(record.audioFilePath)
+                if (success) {
+                    Log.d(TAG, "开始播放音频: ${record.audioFilePath}")
+                } else {
+                    Log.e(TAG, "播放音频失败: ${record.audioFilePath}")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "播放音频时发生异常", e)
+            }
+        }
+    }
+    
+    fun stopPlayback() {
+        audioPlayer.stop()
+        Log.d(TAG, "停止音频播放")
+    }
+    
+    fun pausePlayback() {
+        audioPlayer.pause()
+        Log.d(TAG, "暂停音频播放")
+    }
+    
+    fun resumePlayback() {
+        audioPlayer.resume()
+        Log.d(TAG, "恢复音频播放")
+    }
+    
+    fun isRecordPlaying(record: CoughRecord): Boolean {
+        return audioPlayer.isCurrentlyPlaying(record.audioFilePath)
+    }
+    
+    fun clearPlaybackError() {
+        audioPlayer.clearError()
+    }
+
     override fun onCleared() {
         super.onCleared()
+        audioPlayer.release()
         repository.release()
         Log.d(TAG, "ViewModel cleared")
     }

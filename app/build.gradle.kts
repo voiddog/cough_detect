@@ -20,20 +20,7 @@ android {
             useSupportLibrary = true
         }
         
-        // NDK configuration
-        ndk {
-            abiFilters.add("arm64-v8a")
-            abiFilters.add("armeabi-v7a")
-            abiFilters.add("x86")
-            abiFilters.add("x86_64")
-        }
-        
-        externalNativeBuild {
-            cmake {
-                cppFlags("-std=c++17")
-                arguments("-DANDROID_STL=c++_shared")
-            }
-        }
+
     }
 
     buildTypes {
@@ -58,7 +45,6 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
-        prefab = true
     }
     
     composeOptions {
@@ -71,15 +57,7 @@ android {
         }
     }
     
-    // NDK build configuration
-    externalNativeBuild {
-        cmake {
-            path = file("src/main/cpp/CMakeLists.txt")
-            version = "3.22.1"
-        }
-    }
-    
-    ndkVersion = "25.1.8937393"
+
 }
 
 dependencies {
@@ -103,14 +81,12 @@ dependencies {
     implementation("androidx.room:room-ktx:2.6.0")
     ksp("androidx.room:room-compiler:2.6.0")
     
-    // TensorFlow Lite - 使用更新的版本和GPU支持
+    // TensorFlow Lite - 使用最新版本
     implementation("org.tensorflow:tensorflow-lite:2.15.0")
     implementation("org.tensorflow:tensorflow-lite-gpu:2.15.0")
     implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
     implementation("org.tensorflow:tensorflow-lite-metadata:0.4.4")
-    
-    // Oboe for high-performance audio
-    implementation("com.google.oboe:oboe:1.8.0")
+    implementation("org.tensorflow:tensorflow-lite-task-audio:0.4.4")
     
     // Permission handling
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")

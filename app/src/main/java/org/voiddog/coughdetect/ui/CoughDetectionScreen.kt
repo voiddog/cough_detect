@@ -71,70 +71,76 @@ fun CoughDetectionScreen(
         }
     }
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Header
-        Text(
-            text = stringResource(R.string.cough_detection_app),
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 24.dp)
-        )
+        item {
+            // Header
+            Text(
+                text = stringResource(R.string.cough_detection_app),
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        
+        item {
+            // Detection Status Card
+            DetectionStatusCard(
+                detectionState = detectionState,
+                audioLevel = audioLevel,
+                lastDetectionResult = lastDetectionResult,
+                onMainButtonClick = { viewModel.onMainButtonClick() },
+                onStopClick = { viewModel.stopDetection() },
+                mainButtonText = viewModel.getMainButtonText(),
+                statusText = viewModel.getDetectionStatusText(),
+                isLoading = uiState.isLoading
+            )
+        }
 
-        // Detection Status Card
-        DetectionStatusCard(
-            detectionState = detectionState,
-            audioLevel = audioLevel,
-            lastDetectionResult = lastDetectionResult,
-            onMainButtonClick = { viewModel.onMainButtonClick() },
-            onStopClick = { viewModel.stopDetection() },
-            mainButtonText = viewModel.getMainButtonText(),
-            statusText = viewModel.getDetectionStatusText(),
-            isLoading = uiState.isLoading
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Control Buttons
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Button(
-                onClick = { viewModel.showClearConfirmDialog() },
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error
-                ),
-                enabled = coughRecords.isNotEmpty()
+        item {
+            // Control Buttons
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Icon(Icons.Default.Delete, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(stringResource(R.string.clear_records))
+                Button(
+                    onClick = { viewModel.showClearConfirmDialog() },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    ),
+                    enabled = coughRecords.isNotEmpty()
+                ) {
+                    Icon(Icons.Default.Delete, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.clear_records))
+                }
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        item {
+            // Statistics Card
+            StatisticsCard(
+                recordCount = coughRecords.size,
+                viewModel = viewModel
+            )
+        }
 
-        // Statistics Card
-        StatisticsCard(
-            recordCount = coughRecords.size,
-            viewModel = viewModel
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Cough Records List
-        CoughRecordsList(
-            records = coughRecords,
-            onDeleteRecord = { viewModel.deleteRecord(it) }
-        )
+        item {
+            // Audio Events List
+            AudioEventsList(
+                records = coughRecords,
+                onDeleteRecord = { viewModel.deleteRecord(it) },
+                onPlayRecord = { viewModel.playRecord(it) },
+                viewModel = viewModel
+            )
+        }
     }
 
-    // Error display
+    // Error display overlay
     error?.let { errorMessage ->
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -157,7 +163,7 @@ fun CoughDetectionScreen(
         }
     }
 
-    // Message display
+    // Message display overlay
     uiState.message?.let { message ->
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -375,9 +381,15 @@ fun StatisticsCard(
     recordCount: Int,
     viewModel: CoughDetectionViewModel
 ) {
+    val detectionState by viewModel.detectionState.collectAsState()
+    val audioLevel by viewModel.audioLevel.collectAsState()
+    val lastDetectionResult by viewModel.lastDetectionResult.collectAsState()
+    val coughRecords by viewModel.coughRecords.collectAsState()
+    
     var averageConfidence by remember { mutableStateOf<Float?>(null) }
     
-    LaunchedEffect(recordCount) {
+    // 使用 coughRecords 的变化来触发统计信息更新
+    LaunchedEffect(coughRecords.size) {
         averageConfidence = viewModel.getAverageConfidence()
     }
 
@@ -387,26 +399,92 @@ fun StatisticsCard(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "统计信息",
+                text = "实时统计信息",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
             
             Spacer(modifier = Modifier.height(12.dp))
             
+            // 第一行：检测状态和音频电平
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 StatItem(
-                    label = "咳嗽次数",
-                    value = recordCount.toString(),
+                    label = "检测状态",
+                    value = when (detectionState) {
+                        CoughDetectionRepository.DetectionState.IDLE -> "空闲"
+                        CoughDetectionRepository.DetectionState.RECORDING -> "录制中"
+                        CoughDetectionRepository.DetectionState.PAUSED -> "暂停"
+                        CoughDetectionRepository.DetectionState.PROCESSING -> "处理中"
+                    },
+                    icon = Icons.Default.Info,
+                    valueColor = when (detectionState) {
+                        CoughDetectionRepository.DetectionState.RECORDING -> Color(0xFF4CAF50)
+                        CoughDetectionRepository.DetectionState.PAUSED -> Color(0xFFFF9800)
+                        CoughDetectionRepository.DetectionState.PROCESSING -> Color(0xFF2196F3)
+                        else -> MaterialTheme.colorScheme.onSurface
+                    }
+                )
+                
+                StatItem(
+                    label = "音频电平",
+                    value = "${(audioLevel * 100).toInt()}%",
+                    icon = Icons.Default.Info,
+                    valueColor = if (audioLevel > 0.3f) Color(0xFF4CAF50) else MaterialTheme.colorScheme.onSurface
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // 第二行：检测次数和置信度
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                StatItem(
+                    label = "检测次数",
+                    value = coughRecords.size.toString(),
                     icon = Icons.Default.List
                 )
                 
                 StatItem(
+                    label = "最近置信度",
+                    value = lastDetectionResult?.let { 
+                        if (it.isCough) "${(it.confidence * 100).toInt()}%" else "--"
+                    } ?: "--",
+                    icon = Icons.Default.Info,
+                    valueColor = lastDetectionResult?.let {
+                        if (it.isCough && it.confidence > 0.7f) Color(0xFF4CAF50) else MaterialTheme.colorScheme.onSurface
+                    } ?: MaterialTheme.colorScheme.onSurface
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // 第三行：平均置信度和最后检测时间
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                StatItem(
                     label = "平均置信度",
                     value = averageConfidence?.let { "${(it * 100).toInt()}%" } ?: "--",
+                    icon = Icons.Default.Info
+                )
+                
+                StatItem(
+                    label = "最后检测",
+                    value = lastDetectionResult?.let {
+                        val now = System.currentTimeMillis()
+                        val diff = now - it.timestamp
+                        when {
+                            diff < 60000 -> "${diff / 1000}秒前"
+                            diff < 3600000 -> "${diff / 60000}分钟前"
+                            else -> "${diff / 3600000}小时前"
+                        }
+                    } ?: "--",
                     icon = Icons.Default.Info
                 )
             }
@@ -418,43 +496,52 @@ fun StatisticsCard(
 fun StatItem(
     label: String,
     value: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    valueColor: Color = MaterialTheme.colorScheme.onSurface
 ) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.width(80.dp)
     ) {
         Icon(
             icon,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(20.dp)
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = value,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = valueColor,
+            textAlign = TextAlign.Center
         )
         Text(
             text = label,
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
         )
     }
 }
 
 @Composable
-fun CoughRecordsList(
+fun AudioEventsList(
     records: List<CoughRecord>,
-    onDeleteRecord: (CoughRecord) -> Unit
+    onDeleteRecord: (CoughRecord) -> Unit,
+    onPlayRecord: (CoughRecord) -> Unit,
+    viewModel: CoughDetectionViewModel
 ) {
+    val isPlaying by viewModel.isPlaying.collectAsState()
+    val currentPlayingFile by viewModel.currentPlayingFile.collectAsState()
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "咳嗽记录 (${records.size})",
+                text = "音频事件记录 (${records.size})",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -463,21 +550,24 @@ fun CoughRecordsList(
             
             if (records.isEmpty()) {
                 Text(
-                    text = stringResource(R.string.no_cough_records),
+                    text = "暂无音频事件记录",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
             } else {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.heightIn(max = 300.dp)
+                // 不使用嵌套的LazyColumn，直接展示所有记录
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(records) { record ->
-                        CoughRecordItem(
+                    records.forEach { record ->
+                        AudioEventItem(
                             record = record,
-                            onDelete = { onDeleteRecord(record) }
+                            onDelete = { onDeleteRecord(record) },
+                            onPlay = { onPlayRecord(record) },
+                            isPlaying = currentPlayingFile == record.audioFilePath && isPlaying,
+                            onStop = { viewModel.stopPlayback() }
                         )
                     }
                 }
@@ -487,9 +577,12 @@ fun CoughRecordsList(
 }
 
 @Composable
-fun CoughRecordItem(
+fun AudioEventItem(
     record: CoughRecord,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onPlay: () -> Unit,
+    isPlaying: Boolean = false,
+    onStop: () -> Unit = {}
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -503,25 +596,57 @@ fun CoughRecordItem(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // 播放/停止按钮
+            IconButton(
+                onClick = if (isPlaying) onStop else onPlay,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    if (isPlaying) Icons.Default.Close else Icons.Default.PlayArrow,
+                    contentDescription = if (isPlaying) "停止播放" else "播放音频",
+                    tint = if (isPlaying) Color(0xFF4CAF50) else Color(0xFFFF5722),
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+            
+            Spacer(modifier = Modifier.width(8.dp))
+            
+            // 事件类型图标
             Icon(
-                Icons.Default.PlayArrow,
-                contentDescription = null,
-                tint = Color(0xFFFF5722),
-                modifier = Modifier.size(24.dp)
+                when (record.getAudioEventType()) {
+                    org.voiddog.coughdetect.data.AudioEventType.COUGH -> Icons.Default.Warning
+                    org.voiddog.coughdetect.data.AudioEventType.SNORING -> Icons.Default.Settings
+                    org.voiddog.coughdetect.data.AudioEventType.UNKNOWN -> Icons.Default.Info
+                },
+                contentDescription = "${record.getEventDisplayName()}事件",
+                tint = Color(record.getEventColor()),
+                modifier = Modifier.size(20.dp)
             )
             
             Spacer(modifier = Modifier.width(12.dp))
             
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = record.getFormattedTimestamp(),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = record.getEventDisplayName(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(record.getEventColor())
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = record.getFormattedTimestamp(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
                 
                 Text(
                     text = "时长: ${"%.1f".format(record.getDurationInSeconds())}秒 | " +
-                            "置信度: ${(record.confidence * 100).toInt()}%",
+                            "置信度: ${(record.confidence * 100).toInt()}% | " +
+                            "振幅: ${"%.2f".format(record.amplitude)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -530,7 +655,7 @@ fun CoughRecordItem(
             IconButton(onClick = onDelete) {
                 Icon(
                     Icons.Default.Delete,
-                    contentDescription = stringResource(R.string.delete_record),
+                    contentDescription = "删除记录",
                     tint = MaterialTheme.colorScheme.error
                 )
             }

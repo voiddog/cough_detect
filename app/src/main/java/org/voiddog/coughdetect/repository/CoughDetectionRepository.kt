@@ -36,7 +36,7 @@ class CoughDetectionRepository(private val context: Context) {
     val lastDetectionResult: StateFlow<CoughDetectionResult?> = _lastDetectionResult.asStateFlow()
     
     private var detectionJob: Job? = null
-    private var currentCoughBuffer = mutableListOf<Float>()
+    private var currentAudioBuffer = mutableListOf<Float>()
     private var coughStartTime = 0L
     
     enum class DetectionState {
@@ -124,7 +124,14 @@ class CoughDetectionRepository(private val context: Context) {
         // Monitor audio events
         CoroutineScope(Dispatchers.Main).launch {
             coughDetectEngine.lastAudioEvent.collect { event ->
-                event?.let { handleAudioEvent(it) }
+                event?.let { 
+                    // Store the audio data when a cough is detected
+                    if (it.type == CoughDetectEngine.AudioEventType.COUGH_DETECTED && it.audioData != null) {
+                        // We could store the audio data here if needed
+                        // For now, we're just handling the event normally
+                    }
+                    handleAudioEvent(it) 
+                }
             }
         }
         
@@ -146,7 +153,28 @@ class CoughDetectionRepository(private val context: Context) {
                     .format(java.util.Date(event.timestamp))
                 Log.i(TAG, "🎯 Repository收到咳嗽事件 - 时间: $timeStr, 置信度: ${String.format("%.3f", event.confidence)}, 振幅: ${String.format("%.3f", event.amplitude)}")
                 
-                handleCoughDetection(event.confidence, event.amplitude, event.timestamp)
+                // Use the audio data from the event for accurate processing
+                if (event.audioData != null) {
+                    Log.d(TAG, "🎤 收到包含音频数据的咳嗽事件，数据长度: ${event.audioData.size}")
+                    handleAudioDetectionWithData(event.confidence, event.amplitude, event.timestamp, org.voiddog.coughdetect.data.AudioEventType.COUGH, event.audioData)
+                } else {
+                    Log.w(TAG, "⚠️ 咳嗽事件没有音频数据，使用振幅数据")
+                    handleAudioDetection(event.confidence, event.amplitude, event.timestamp, org.voiddog.coughdetect.data.AudioEventType.COUGH)
+                }
+            }
+            CoughDetectEngine.AudioEventType.SNORING_DETECTED -> {
+                val timeStr = java.text.SimpleDateFormat("HH:mm:ss.SSS", java.util.Locale.getDefault())
+                    .format(java.util.Date(event.timestamp))
+                Log.i(TAG, "😴 Repository收到打鼾事件 - 时间: $timeStr, 置信度: ${String.format("%.3f", event.confidence)}, 振幅: ${String.format("%.3f", event.amplitude)}")
+                
+                // Use the audio data from the event for accurate processing
+                if (event.audioData != null) {
+                    Log.d(TAG, "😴 收到包含音频数据的打鼾事件，数据长度: ${event.audioData.size}")
+                    handleAudioDetectionWithData(event.confidence, event.amplitude, event.timestamp, org.voiddog.coughdetect.data.AudioEventType.SNORING, event.audioData)
+                } else {
+                    Log.w(TAG, "⚠️ 打鼾事件没有音频数据，使用振幅数据")
+                    handleAudioDetection(event.confidence, event.amplitude, event.timestamp, org.voiddog.coughdetect.data.AudioEventType.SNORING)
+                }
             }
             CoughDetectEngine.AudioEventType.AUDIO_LEVEL_CHANGED -> {
                 // 定期输出音频电平统计
@@ -212,96 +240,139 @@ class CoughDetectionRepository(private val context: Context) {
             coughDetectEngine.stop()
             
             // Process any remaining audio in buffer
-            if (currentCoughBuffer.isNotEmpty()) {
-                processPendingCough()
+            if (currentAudioBuffer.isNotEmpty()) {
+                processPendingAudio()
             }
             
             Log.d(TAG, "Cough detection stopped")
         }
     }
     
-    private suspend fun handleCoughDetection(
+    // 新增：处理带有真实音频数据的事件
+    private suspend fun handleAudioDetectionWithData(
         confidence: Float, 
         amplitude: Float, 
-        timestamp: Long
+        timestamp: Long,
+        eventType: org.voiddog.coughdetect.data.AudioEventType,
+        audioData: FloatArray
     ) {
-        // Start new cough buffer if empty
-        if (currentCoughBuffer.isEmpty()) {
-            coughStartTime = timestamp
-        }
+        Log.d(TAG, "📊 处理${eventType.displayName}事件，音频数据长度: ${audioData.size}, 置信度: ${String.format("%.3f", confidence)}")
         
-        // Add dummy audio data to buffer (since we don't have the actual audio data in this simplified version)
-        // In a real implementation, you would store the actual audio data
-        currentCoughBuffer.add(amplitude)
-        
-        // Check if cough is too long
-        val currentDuration = currentCoughBuffer.size * 100L // Assuming 100ms chunks
-        
-        if (currentDuration > MAX_COUGH_DURATION_MS) {
-            // Save the cough record
-            saveCoughRecord(confidence, amplitude, timestamp)
-            
-            // Clear buffer for next cough
-            clearCoughBuffer()
-        }
+        // 直接使用引擎提供的音频数据保存记录
+        saveAudioEventRecordWithData(confidence, amplitude, timestamp, eventType, audioData)
         
         // Update the last detection result
         _lastDetectionResult.value = CoughDetectionResult(
-            isCough = true,
+            isCough = eventType == org.voiddog.coughdetect.data.AudioEventType.COUGH,
             confidence = confidence,
             timestamp = timestamp
         )
     }
     
-    private suspend fun processPendingCough() {
-        if (currentCoughBuffer.isNotEmpty()) {
-            val amplitude = currentCoughBuffer.average().toFloat()
+    // 保留原有方法作为后备
+    private suspend fun handleAudioDetection(
+        confidence: Float, 
+        amplitude: Float, 
+        timestamp: Long,
+        eventType: org.voiddog.coughdetect.data.AudioEventType
+    ) {
+        // Start new audio buffer if empty
+        if (currentAudioBuffer.isEmpty()) {
+            coughStartTime = timestamp
+        }
+        
+        // Add amplitude to buffer (fallback when no real audio data)
+        currentAudioBuffer.add(amplitude)
+        
+        // Check if audio event is too long
+        val currentDuration = currentAudioBuffer.size * 100L // Assuming 100ms chunks
+        
+        if (currentDuration > MAX_COUGH_DURATION_MS) {
+            // Save the audio event record
+            saveAudioEventRecord(confidence, amplitude, timestamp, eventType)
+            
+            // Clear buffer for next event
+            clearAudioBuffer()
+        }
+        
+        // Update the last detection result
+        _lastDetectionResult.value = CoughDetectionResult(
+            isCough = eventType == org.voiddog.coughdetect.data.AudioEventType.COUGH,
+            confidence = confidence,
+            timestamp = timestamp
+        )
+    }
+    
+    private suspend fun processPendingAudio() {
+        if (currentAudioBuffer.isNotEmpty()) {
+            val amplitude = currentAudioBuffer.maxOrNull() ?: 0.0f // 使用最大振幅而不是平均值
             val timestamp = coughStartTime
             
-            // Use a default confidence for pending coughs
-            val confidence = 0.5f
+            // 使用最后一个检测结果的置信度，如果没有则使用默认值
+            val confidence = _lastDetectionResult.value?.confidence ?: 0.7f
+            val isCough = _lastDetectionResult.value?.isCough ?: true
+            val eventType = if (isCough) org.voiddog.coughdetect.data.AudioEventType.COUGH else org.voiddog.coughdetect.data.AudioEventType.SNORING
             
-            saveCoughRecord(confidence, amplitude, timestamp)
-            clearCoughBuffer()
+            saveAudioEventRecord(confidence, amplitude, timestamp, eventType)
+            clearAudioBuffer()
         }
     }
     
-    private suspend fun saveCoughRecord(
+    // 新增：使用真实音频数据保存记录
+    private suspend fun saveAudioEventRecordWithData(
         confidence: Float,
         amplitude: Float,
-        timestamp: Long
+        timestamp: Long,
+        eventType: org.voiddog.coughdetect.data.AudioEventType,
+        audioData: FloatArray
     ) {
         try {
             val saveStartTime = System.currentTimeMillis()
             
             // Generate filename with timestamp
             val dateFormat = SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.getDefault())
-            val filename = "cough_${dateFormat.format(Date(timestamp))}"
+            val eventTypeName = eventType.name.lowercase()
+            val filename = "${eventTypeName}_${dateFormat.format(Date(timestamp))}"
             
-            // Create audio file path
-            val audioDir = java.io.File(context.getExternalFilesDir(null), "cough_audio")
+            // Create audio file path using internal storage for better compatibility
+            val audioDir = java.io.File(context.filesDir, "audio_events")
+            if (!audioDir.exists()) {
+                audioDir.mkdirs()
+            }
             val audioFilePath = "${audioDir.absolutePath}/$filename.wav"
             
+            // Save real audio data to file
+            val saved = saveAudioDataToFile(audioFilePath, audioData)
+            if (!saved) {
+                Log.e(TAG, "❌ 保存音频文件失败: $audioFilePath")
+                _error.value = "保存音频文件失败"
+                return
+            }
+            
+            // Calculate duration based on sample rate (assuming 16kHz)
+            val sampleRate = 16000 // Hz
+            val duration = (audioData.size * 1000L) / sampleRate // 转换为毫秒
+            
             // Create database record
-            val duration = currentCoughBuffer.size * 100L // Assuming 100ms chunks
-            val coughRecord = CoughRecord(
+            val audioRecord = CoughRecord(
                 timestamp = timestamp,
                 audioFilePath = audioFilePath,
                 duration = duration,
                 confidence = confidence,
                 amplitude = amplitude,
+                eventType = eventType.name,
                 createdAt = Date(timestamp)
             )
             
             // Save to database
-            val recordId = coughRecordDao.insertRecord(coughRecord)
+            val recordId = coughRecordDao.insertRecord(audioRecord)
             val saveTime = System.currentTimeMillis() - saveStartTime
             
             // 获取当前总记录数
             val totalRecords = coughRecordDao.getRecordCount()
             
-            Log.i(TAG, "💾 咳嗽记录已保存 - ID: $recordId, 文件: $filename, 置信度: ${String.format("%.3f", confidence)}, " +
-                    "时长: ${duration}ms, 保存耗时: ${saveTime}ms, 总记录数: $totalRecords")
+            Log.i(TAG, "💾 ${eventType.displayName}记录已保存 - ID: $recordId, 文件: $filename, 置信度: ${String.format("%.3f", confidence)}, " +
+                    "音频样本: ${audioData.size}, 时长: ${duration}ms, 保存耗时: ${saveTime}ms, 总记录数: $totalRecords")
             
             // 检查存储空间
             val freeSpace = audioDir.freeSpace / 1024 / 1024
@@ -310,13 +381,127 @@ class CoughDetectionRepository(private val context: Context) {
             }
             
         } catch (e: Exception) {
-            Log.e(TAG, "❌ 保存咳嗽记录失败", e)
-            _error.value = "保存咳嗽记录失败: ${e.message}"
+            Log.e(TAG, "❌ 保存${eventType.displayName}记录失败", e)
+            _error.value = "保存${eventType.displayName}记录失败: ${e.message}"
         }
     }
     
-    private fun clearCoughBuffer() {
-        currentCoughBuffer.clear()
+    // 保留原有方法作为后备（不保存音频文件，只保存数据库记录）
+    private suspend fun saveAudioEventRecord(
+        confidence: Float,
+        amplitude: Float,
+        timestamp: Long,
+        eventType: org.voiddog.coughdetect.data.AudioEventType
+    ) {
+        try {
+            val saveStartTime = System.currentTimeMillis()
+            
+            Log.w(TAG, "⚠️ ${eventType.displayName}事件没有音频数据，只保存数据库记录，不创建音频文件")
+            
+            // Calculate duration based on buffer size (fallback estimation)
+            val duration = currentAudioBuffer.size * 100L // Assuming 100ms chunks
+            
+            // Create database record without audio file
+            val audioRecord = CoughRecord(
+                timestamp = timestamp,
+                audioFilePath = "", // 空文件路径表示没有音频文件
+                duration = duration,
+                confidence = confidence,
+                amplitude = amplitude,
+                eventType = eventType.name,
+                createdAt = Date(timestamp)
+            )
+            
+            // Save to database
+            val recordId = coughRecordDao.insertRecord(audioRecord)
+            val saveTime = System.currentTimeMillis() - saveStartTime
+            
+            // 获取当前总记录数
+            val totalRecords = coughRecordDao.getRecordCount()
+            
+            Log.i(TAG, "💾 ${eventType.displayName}记录已保存(仅数据库) - ID: $recordId, 置信度: ${String.format("%.3f", confidence)}, " +
+                    "时长: ${duration}ms(估算), 保存耗时: ${saveTime}ms, 总记录数: $totalRecords")
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ 保存${eventType.displayName}记录失败", e)
+            _error.value = "保存${eventType.displayName}记录失败: ${e.message}"
+        }
+    }
+    
+    private fun saveAudioDataToFile(filePath: String, audioData: FloatArray): Boolean {
+        return try {
+            java.io.FileOutputStream(filePath).use { fos ->
+                // Convert float array to 16-bit PCM
+                val shortBuffer = ShortArray(audioData.size)
+                for (i in audioData.indices) {
+                    // Clamp the value between -1.0 and 1.0
+                    val clampedValue = audioData[i].coerceIn(-1.0f, 1.0f)
+                    // Convert to 16-bit PCM (-32768 to 32767)
+                    shortBuffer[i] = (clampedValue * 32767).toInt().toShort()
+                }
+                
+                // Write WAV header and audio data
+                writeWavHeader(fos, shortBuffer.size * 2, 16000, 1, 16)
+                
+                // Write audio data
+                for (sample in shortBuffer) {
+                    fos.write(sample.toInt() and 0xFF)
+                    fos.write((sample.toInt() ushr 8) and 0xFF)
+                }
+            }
+            
+            Log.d(TAG, "✅ 音频文件保存成功: $filePath, 大小: ${java.io.File(filePath).length()} bytes")
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ 保存音频文件失败: $filePath", e)
+            false
+        }
+    }
+    
+    private fun writeWavHeader(
+        out: java.io.OutputStream,
+        audioLength: Int,
+        sampleRate: Int,
+        channels: Int,
+        bitsPerSample: Int
+    ) {
+        val byteRate = sampleRate * channels * bitsPerSample / 8
+        val blockAlign = channels * bitsPerSample / 8
+        
+        // RIFF header
+        out.write("RIFF".toByteArray())
+        writeInt(out, 36 + audioLength) // Chunk size
+        out.write("WAVE".toByteArray())
+        
+        // Format chunk
+        out.write("fmt ".toByteArray())
+        writeInt(out, 16) // Subchunk1 size
+        writeShort(out, 1.toShort()) // Audio format (1 = PCM)
+        writeShort(out, channels.toShort()) // Number of channels
+        writeInt(out, sampleRate) // Sample rate
+        writeInt(out, byteRate) // Byte rate
+        writeShort(out, blockAlign.toShort()) // Block align
+        writeShort(out, bitsPerSample.toShort()) // Bits per sample
+        
+        // Data chunk
+        out.write("data".toByteArray())
+        writeInt(out, audioLength) // Data chunk size
+    }
+    
+    private fun writeInt(out: java.io.OutputStream, value: Int) {
+        out.write(value and 0xFF)
+        out.write((value ushr 8) and 0xFF)
+        out.write((value ushr 16) and 0xFF)
+        out.write((value ushr 24) and 0xFF)
+    }
+    
+    private fun writeShort(out: java.io.OutputStream, value: Short) {
+        out.write(value.toInt() and 0xFF)
+        out.write((value.toInt() ushr 8) and 0xFF)
+    }
+    
+    private fun clearAudioBuffer() {
+        currentAudioBuffer.clear()
         coughStartTime = 0L
     }
     
@@ -331,10 +516,16 @@ class CoughDetectionRepository(private val context: Context) {
     
     suspend fun deleteCoughRecord(record: CoughRecord) {
         try {
-            // Delete audio file
-            val audioFile = java.io.File(record.audioFilePath)
-            if (audioFile.exists()) {
-                audioFile.delete()
+            // Delete audio file only if path is not empty
+            if (record.audioFilePath.isNotEmpty()) {
+                val audioFile = java.io.File(record.audioFilePath)
+                Log.d(TAG, "删除音频文件: ${record.audioFilePath}, 文件存在: ${audioFile.exists()}")
+                if (audioFile.exists()) {
+                    val deleted = audioFile.delete()
+                    Log.d(TAG, "音频文件删除${if (deleted) "成功" else "失败"}: ${record.audioFilePath}")
+                }
+            } else {
+                Log.d(TAG, "记录 ${record.id} 没有关联的音频文件")
             }
             
             // Delete database record
@@ -352,11 +543,17 @@ class CoughDetectionRepository(private val context: Context) {
             // Get all records first
             val records = coughRecordDao.getAllRecords().first()
             
-            // Delete audio files
+            // Delete audio files only if they exist
             records.forEach { record ->
-                val audioFile = java.io.File(record.audioFilePath)
-                if (audioFile.exists()) {
-                    audioFile.delete()
+                if (record.audioFilePath.isNotEmpty()) {
+                    val audioFile = java.io.File(record.audioFilePath)
+                    Log.d(TAG, "删除音频文件: ${record.audioFilePath}, 文件存在: ${audioFile.exists()}")
+                    if (audioFile.exists()) {
+                        val deleted = audioFile.delete()
+                        Log.d(TAG, "音频文件删除${if (deleted) "成功" else "失败"}: ${record.audioFilePath}")
+                    }
+                } else {
+                    Log.d(TAG, "记录 ${record.id} 没有关联的音频文件，跳过")
                 }
             }
             
@@ -390,7 +587,7 @@ class CoughDetectionRepository(private val context: Context) {
     fun release() {
         detectionJob?.cancel()
         coughDetectEngine.release()
-        clearCoughBuffer()
+        clearAudioBuffer()
         Log.d(TAG, "Repository released")
     }
     

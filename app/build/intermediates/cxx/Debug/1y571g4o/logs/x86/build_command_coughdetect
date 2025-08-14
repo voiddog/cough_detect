@@ -1,4 +1,0 @@
-/Users/bytedance/Library/Android/sdk/cmake/3.22.1/bin/ninja \
-  -C \
-  /Users/bytedance/Developer/Github/cough_detect/app/.cxx/Debug/1y571g4o/x86 \
-  coughdetect
