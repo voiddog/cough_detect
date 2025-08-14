@@ -15,20 +15,22 @@ class CoughDetectEngine(private val context: Context) {
     companion object {
         private const val TAG = "CoughDetectEngine"
         private const val AUDIO_BUFFER_DURATION_MS = 1000 // 1 second buffers
-        private const val DETECTION_INTERVAL_MS = 500 // Run detection every 500ms
+        private const val AUDIO_DETECT_OVERLAP = 200; // 200ms cache for detection overlap
         private const val MIN_CONFIDENCE_THRESHOLD = 0.6f
+        private const val AUDIO_LEVEL_LOG_INTERVAL_MS = 100L // Log audio level every 100ms
     }
 
     private val audioRecorder = AudioRecorder(context)
     private val tensorFlowDetector = TensorFlowLiteDetector(context)
-    
+
     private var detectionJob: Job? = null
     private val isInitialized = AtomicBoolean(false)
-    
+
     // Audio buffer for accumulating samples
     private val audioBuffer = mutableListOf<Float>()
     private val bufferLock = Any()
     private val targetBufferSize = (audioRecorder.getSampleRate() * AUDIO_BUFFER_DURATION_MS) / 1000
+    private val overlapBufferSize = (audioRecorder.getSampleRate() * AUDIO_DETECT_OVERLAP) / 1000
 
     // Engine states
     enum class EngineState(val value: Int) {
@@ -99,6 +101,8 @@ class CoughDetectEngine(private val context: Context) {
     // 统计变量
     private var coughDetectionCount = 0
     private var firstCoughTime = 0L
+    private var lastAudioEventSentTime = 0L
+    private var lastLogErrorTime = 0L
 
     init {
         // Set up audio data callback
@@ -109,31 +113,49 @@ class CoughDetectEngine(private val context: Context) {
 
     // Callback for audio data from AudioRecorder
     private fun onAudioData(audioData: FloatArray, amplitude: Float) {
+        // Limit frequency of audio level change events
+        val currentTime = System.currentTimeMillis()
+        val shouldEmitAudioLevelEvent = currentTime - lastAudioEventSentTime >= AUDIO_LEVEL_LOG_INTERVAL_MS
+        var canLog = currentTime - lastLogErrorTime >= AUDIO_LEVEL_LOG_INTERVAL_MS
         try {
             // Update audio level
             _audioLevel.value = amplitude
-            
-            // Emit audio level change event
-            val event = AudioEvent(
-                type = AudioEventType.AUDIO_LEVEL_CHANGED,
-                confidence = 1.0f,
-                amplitude = amplitude,
-                timestamp = System.currentTimeMillis()
-            )
-            _lastAudioEvent.value = event
-            
+
+            if (shouldEmitAudioLevelEvent) {
+                // Emit audio level change event
+                val event = AudioEvent(
+                    type = AudioEventType.AUDIO_LEVEL_CHANGED,
+                    confidence = 1.0f,
+                    amplitude = amplitude,
+                    timestamp = currentTime // Use current time for the event
+                )
+                _lastAudioEvent.value = event
+                lastAudioEventSentTime = currentTime // Update last log time
+            }
+
             // Add to buffer for cough detection
             synchronized(bufferLock) {
                 audioBuffer.addAll(audioData.toList())
-                
+
                 // Keep buffer size manageable
-                while (audioBuffer.size > targetBufferSize * 2) {
-                    audioBuffer.removeFirst()
+                val currentSize = audioBuffer.size
+                val maxSize = targetBufferSize * 2
+                if (currentSize > maxSize) {
+                    // Efficiently remove excess elements
+                    val elementsToRemove = currentSize - maxSize
+                    audioBuffer.subList(0, elementsToRemove).clear()
+                    if (canLog) {
+                        Log.w(TAG, "音频缓冲区已满，已删除${elementsToRemove}个元素")
+                        lastLogErrorTime = currentTime // Update last log time
+                    }
                 }
             }
-            
+
         } catch (e: Exception) {
-            Log.e(TAG, "处理音频数据时发生异常", e)
+            if (canLog) {
+                Log.e(TAG, "处理音频数据时发生异常", e)
+                lastLogErrorTime = currentTime // Update last log time
+            }
             _error.value = "音频处理异常: ${e.message}"
         }
     }
@@ -168,7 +190,7 @@ class CoughDetectEngine(private val context: Context) {
                 val avgInterval = (currentTime - firstCoughTime) / (coughDetectionCount - 1)
                 Log.i(TAG, "咳嗽检测统计 - 总数: $coughDetectionCount, 平均间隔: ${avgInterval}ms")
             }
-            
+
         } catch (e: Exception) {
             Log.e(TAG, "处理咳嗽检测结果时发生异常", e)
             _error.value = "检测处理异常: ${e.message}"
@@ -176,7 +198,7 @@ class CoughDetectEngine(private val context: Context) {
     }
 
     // Initialize the engine
-    fun initialize(modelPath: String? = null): Boolean {
+    fun initialize(): Boolean {
         return try {
             val startTime = System.currentTimeMillis()
             Log.i(TAG, "🚀 开始初始化咳嗽检测引擎...")
@@ -291,7 +313,7 @@ class CoughDetectEngine(private val context: Context) {
                 val avgInterval = if (coughDetectionCount > 1) totalTime / (coughDetectionCount - 1) else 0
                 Log.i(TAG, "本次检测统计 - 总咳嗽数: $coughDetectionCount, 平均间隔: ${avgInterval}ms")
             }
-            
+
         } catch (e: Exception) {
             Log.e(TAG, "❌ 停止过程中发生异常", e)
             _error.value = "停止失败: ${e.message}"
@@ -356,26 +378,26 @@ class CoughDetectEngine(private val context: Context) {
     fun release() {
         try {
             Log.i(TAG, "🧹 释放引擎资源...")
-            
+
             // Stop detection
             stop()
-            
+
             // Release audio recorder
             audioRecorder.release()
-            
+
             // Release TensorFlow detector
             tensorFlowDetector.cleanup()
-            
+
             // Clear buffer
             synchronized(bufferLock) {
                 audioBuffer.clear()
             }
-            
+
             isInitialized.set(false)
             _engineState.value = EngineState.IDLE
-            
+
             Log.i(TAG, "✅ 引擎资源已释放")
-            
+
         } catch (e: Exception) {
             Log.e(TAG, "释放资源时发生异常", e)
         }
@@ -390,12 +412,10 @@ class CoughDetectEngine(private val context: Context) {
                     val audioData = synchronized(bufferLock) {
                         if (audioBuffer.size >= targetBufferSize) {
                             val data = audioBuffer.take(targetBufferSize).toFloatArray()
-                            // Remove processed data (keep some overlap)
-                            val removeCount = targetBufferSize / 2
-                            repeat(removeCount) {
-                                if (audioBuffer.isNotEmpty()) {
-                                    audioBuffer.removeFirst()
-                                }
+                            val removeCount = targetBufferSize - overlapBufferSize
+                            // Efficiently remove elements
+                            if (removeCount > 0 && removeCount <= audioBuffer.size) {
+                                audioBuffer.subList(0, removeCount).clear()
                             }
                             data
                         } else {
@@ -405,22 +425,19 @@ class CoughDetectEngine(private val context: Context) {
 
                     audioData?.let { data ->
                         _engineState.value = EngineState.PROCESSING
-                        
+
                         // Run cough detection
                         val result = tensorFlowDetector.detectCough(data)
-                        
+
                         if (result.isCough && result.confidence >= MIN_CONFIDENCE_THRESHOLD) {
                             val amplitude = _audioLevel.value
                             // Pass the actual audio data that was used for detection
                             onCoughDetected(result.confidence, amplitude, data)
                         }
-                        
+
                         _engineState.value = EngineState.RECORDING
                     }
 
-                    // Wait before next detection
-                    delay(DETECTION_INTERVAL_MS.toLong())
-                    
                 } catch (e: Exception) {
                     Log.e(TAG, "检测任务中发生异常", e)
                     _error.value = "检测异常: ${e.message}"
