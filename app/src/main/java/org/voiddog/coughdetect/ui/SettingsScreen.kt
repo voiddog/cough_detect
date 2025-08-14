@@ -23,6 +23,7 @@ import org.voiddog.coughdetect.viewmodel.SettingsViewModel
 @Composable
 fun SettingsScreen(
     onBackClick: () -> Unit,
+    onGaodeApiKeySave: (String) -> Unit,
     viewModel: SettingsViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -71,6 +72,7 @@ fun SettingsScreen(
                 SettingsContent(
                     uiState = uiState,
                     onMaxAudioCacheSizeChange = { viewModel.updateMaxAudioCacheSize(it) },
+                    onGaodeApiKeySave = onGaodeApiKeySave,
                     onSaveClick = { viewModel.saveSettings() }
                 )
             }
@@ -128,6 +130,7 @@ fun SettingsScreen(
 fun SettingsContent(
     uiState: org.voiddog.coughdetect.viewmodel.SettingsUiState,
     onMaxAudioCacheSizeChange: (Long) -> Unit,
+    onGaodeApiKeySave: (String) -> Unit,
     onSaveClick: () -> Unit
 ) {
     Column(
@@ -313,9 +316,7 @@ fun SettingsContent(
                 
                 Button(
                     onClick = { 
-                        // 更新API Key并保存设置
-                        // 这里我们只是更新状态，实际的保存操作会在其他地方进行
-                        // 或者我们可以考虑使用一个回调函数来处理保存操作
+                        onGaodeApiKeySave(gaodeApiKey)
                     },
                     modifier = Modifier.fillMaxWidth(),
                     enabled = gaodeApiKey != uiState.gaodeApiKey

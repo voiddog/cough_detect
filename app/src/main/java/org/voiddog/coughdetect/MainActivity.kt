@@ -13,6 +13,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.lifecycleScope
 import android.util.Log
 import android.app.AlertDialog
@@ -25,7 +26,9 @@ import org.voiddog.coughdetect.plugin.WeatherPlugin
 import org.voiddog.coughdetect.ui.CoughDetectionScreen
 import org.voiddog.coughdetect.ui.SettingsScreen
 import org.voiddog.coughdetect.ui.theme.CoughDetectTheme
+import androidx.lifecycle.viewmodel.compose.viewModel
 import org.voiddog.coughdetect.viewmodel.CoughDetectionViewModel
+import org.voiddog.coughdetect.viewmodel.SettingsViewModel
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -86,8 +89,14 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                             composable("settings") {
+                                val settingsViewModel: SettingsViewModel = viewModel()
                                 SettingsScreen(
-                                    onBackClick = { navController.popBackStack() }
+                                    onBackClick = { navController.popBackStack() },
+                                    onGaodeApiKeySave = { apiKey ->
+                                        settingsViewModel.updateGaodeApiKey(apiKey)
+                                        settingsViewModel.saveSettings()
+                                    },
+                                    viewModel = settingsViewModel
                                 )
                             }
                         }
